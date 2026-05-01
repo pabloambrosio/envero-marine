@@ -1,0 +1,158 @@
+---
+---
+
+<section class="hero">
+  <div class="hero__bg" aria-hidden="true"></div>
+
+  <div class="container hero__inner">
+    <div class="hero__content">
+      <span class="eyebrow">Outstanding Services</span>
+      <h1 class="hero__title">
+        Soluciones marinas <em>de ingeniería</em> al nivel de tu operación.
+      </h1>
+      <p class="hero__lead">
+        Servicios técnicos integrales para industrias marítima, portuaria y energética.
+        Diseñamos, implementamos y mantenemos infraestructura crítica con estándares
+        internacionales.
+      </p>
+
+      <div class="hero__actions">
+        <a href="#contacto" class="btn btn--primary">Conversemos</a>
+        <a href="#servicios" class="btn btn--ghost">Ver servicios</a>
+      </div>
+
+      <ul class="hero__stats" aria-label="Indicadores destacados">
+        <li>
+          <strong>+15</strong>
+          <span>años de experiencia</span>
+        </li>
+        <li>
+          <strong>120+</strong>
+          <span>proyectos entregados</span>
+        </li>
+        <li>
+          <strong>24/7</strong>
+          <span>soporte operativo</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    min-height: 100vh;
+    padding-top: calc(var(--header-height) + var(--space-8));
+    padding-bottom: var(--space-9);
+    color: #fff;
+    overflow: hidden;
+  }
+
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(
+        70% 60% at 80% 20%,
+        rgba(217, 132, 42, 0.22) 0%,
+        rgba(217, 132, 42, 0) 60%
+      ),
+      linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
+  }
+
+  .hero__bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.04) 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at center, #000 50%, transparent 80%);
+  }
+
+  .hero__inner {
+    display: flex;
+    align-items: center;
+    min-height: calc(100vh - var(--header-height) - var(--space-8) - var(--space-9));
+  }
+
+  .hero__content {
+    max-width: 780px;
+  }
+
+  .hero__title {
+    margin-top: var(--space-5);
+    font-size: var(--fs-4xl);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+
+  .hero__title em {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    color: var(--color-accent);
+  }
+
+  .hero__lead {
+    margin-top: var(--space-5);
+    max-width: 56ch;
+    font-size: var(--fs-lg);
+    color: rgba(255, 255, 255, 0.78);
+    line-height: 1.55;
+  }
+
+  .hero__actions {
+    margin-top: var(--space-7);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .hero__stats {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    list-style: none;
+    padding-left: 0;
+    max-width: 640px;
+  }
+
+  .hero__stats li {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .hero__stats strong {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .hero__stats span {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  @media (max-width: 640px) {
+    .hero__stats {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

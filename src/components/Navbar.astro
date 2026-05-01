@@ -1,0 +1,133 @@
+---
+const links = [
+  { label: "Servicios", href: "#servicios" },
+  { label: "Nosotros", href: "#nosotros" },
+  { label: "Proyectos", href: "#proyectos" },
+  { label: "Contacto", href: "#contacto" },
+];
+---
+
+<header class="nav">
+  <div class="container nav__inner">
+    <a href="/" class="nav__brand" aria-label="Envero Marine — Inicio">
+      <span class="nav__brand-mark">E</span>
+      <span class="nav__brand-text">
+        <span class="nav__brand-name">
+          E<em>nvero</em>
+        </span>
+        <span class="nav__brand-sub">Marine</span>
+      </span>
+    </a>
+
+    <nav class="nav__menu" aria-label="Navegación principal">
+      <ul>
+        {links.map((link) => (
+          <li><a href={link.href}>{link.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <a href="#contacto" class="btn btn--primary nav__cta">
+      Solicitar cotización
+    </a>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: absolute;
+    inset: 0 0 auto 0;
+    z-index: 10;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    color: #fff;
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .nav__brand-mark {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-accent);
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .nav__brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .nav__brand-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .nav__brand-name em {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    color: var(--color-accent);
+  }
+
+  .nav__brand-sub {
+    font-size: 0.7rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
+
+  .nav__menu ul {
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav__menu a {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    opacity: 0.85;
+    transition: opacity 0.2s var(--ease-out), color 0.2s var(--ease-out);
+  }
+
+  .nav__menu a:hover {
+    opacity: 1;
+    color: var(--color-accent-soft);
+  }
+
+  @media (max-width: 880px) {
+    .nav__menu {
+      display: none;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .nav__cta {
+      display: none;
+    }
+  }
+</style>
