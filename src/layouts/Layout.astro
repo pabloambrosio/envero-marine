@@ -1,4 +1,6 @@
 ---
+import { Font } from "astro:assets";
+import { resolveLang, useTranslations } from "../i18n/utils";
 import "../styles/global.css";
 
 interface Props {
@@ -6,26 +8,23 @@ interface Props {
   description?: string;
 }
 
-const {
-  title = "Envero Marine — Outstanding Services",
-  description = "Servicios marinos e industriales de excelencia.",
-} = Astro.props;
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const { title = t("meta.title"), description = t("meta.description") } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;1,500&display=swap"
-    />
+    <Font cssVariable="--font-sans" preload />
+    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-mono" preload />
     <title>{title}</title>
   </head>
   <body>

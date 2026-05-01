@@ -1,0 +1,70 @@
+---
+import { resolveLang, useTranslations } from "../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+---
+
+<div class="lang" role="group" aria-label={t("lang.groupLabel")}>
+  <a
+    href="/"
+    class:list={["lang__opt", { "is-active": lang === "es" }]}
+    aria-current={lang === "es" ? "true" : "false"}
+    hreflang="es"
+    lang="es"
+  >
+    ES
+  </a>
+  <span class="lang__sep" aria-hidden="true">/</span>
+  <a
+    href="/en/"
+    class:list={["lang__opt", { "is-active": lang === "en" }]}
+    aria-current={lang === "en" ? "true" : "false"}
+    hreflang="en"
+    lang="en"
+  >
+    EN
+  </a>
+</div>
+
+<style>
+  .lang {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding-left: var(--space-5);
+    border-left: 1px solid rgba(255, 255, 255, 0.18);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .lang__opt {
+    color: rgba(255, 255, 255, 0.45);
+    transition: color 0.2s var(--ease-out);
+  }
+
+  .lang__opt:hover {
+    color: #fff;
+  }
+
+  .lang__opt.is-active {
+    color: var(--color-accent);
+  }
+
+  .lang__opt.is-active:hover {
+    color: var(--color-accent-soft);
+  }
+
+  .lang__sep {
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  @media (max-width: 880px) {
+    .lang {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+</style>
