@@ -1,0 +1,159 @@
+---
+import { resolveLang, useTranslations } from "../../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+---
+
+<form class="bk-form" data-booking-form novalidate>
+  <header class="bk-form__head">
+    <span class="bk-form__date" data-booking-date>—</span>
+    <button type="button" class="bk-form__back" data-booking-back>
+      {t("booking.step2.changeDate")}
+    </button>
+  </header>
+
+  <div class="bk-field">
+    <label class="bk-field__label" for="bk-company">
+      {t("booking.field.company")}
+    </label>
+    <div class="bk-field__input">
+      <i class="fa-solid fa-building" aria-hidden="true"></i>
+      <input
+        id="bk-company"
+        type="text"
+        name="company"
+        autocomplete="organization"
+        placeholder={t("booking.field.companyPlaceholder")}
+      />
+    </div>
+  </div>
+
+  <div class="bk-field">
+    <label class="bk-field__label" for="bk-email">
+      {t("booking.field.email")}
+    </label>
+    <div class="bk-field__input">
+      <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+      <input
+        id="bk-email"
+        type="email"
+        name="email"
+        autocomplete="email"
+        placeholder={t("booking.field.emailPlaceholder")}
+      />
+    </div>
+  </div>
+
+  <div class="bk-field">
+    <label class="bk-field__label" for="bk-phone">
+      {t("booking.field.phone")}
+    </label>
+    <div class="bk-field__input">
+      <i class="fa-solid fa-phone-flip" aria-hidden="true"></i>
+      <input
+        id="bk-phone"
+        type="tel"
+        name="phone"
+        autocomplete="tel"
+        placeholder={t("booking.field.phonePlaceholder")}
+      />
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn--primary bk-form__submit">
+    <span>{t("booking.submit")}</span>
+    <span class="btn__arrow" aria-hidden="true">→</span>
+  </button>
+</form>
+
+<style>
+  .bk-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .bk-form__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .bk-form__date {
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+
+  .bk-form__back {
+    color: rgba(255, 255, 255, 0.55);
+    transition: color 0.2s var(--ease-out);
+  }
+
+  .bk-form__back:hover {
+    color: #fff;
+  }
+
+  .bk-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .bk-field__label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .bk-field__input {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+    transition: border-color 0.2s var(--ease-out);
+  }
+
+  .bk-field__input:focus-within {
+    border-color: var(--color-accent);
+  }
+
+  .bk-field__input i {
+    color: var(--color-accent);
+    font-size: 0.95rem;
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .bk-field__input input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: #fff;
+    font: inherit;
+    font-size: var(--fs-sm);
+    padding: 4px 0;
+  }
+
+  .bk-field__input input::placeholder {
+    color: rgba(255, 255, 255, 0.28);
+  }
+
+  .bk-form__submit {
+    margin-top: var(--space-3);
+    align-self: flex-start;
+  }
+</style>

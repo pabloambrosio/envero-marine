@@ -1,0 +1,283 @@
+---
+import { resolveLang, useTranslations } from "../../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+---
+
+<div class="cal" data-booking-calendar data-lang={lang}>
+  <header class="cal__header">
+    <button
+      type="button"
+      class="cal__nav"
+      data-cal-prev
+      aria-label={t("booking.calendar.prev")}
+    >
+      ←
+    </button>
+    <span class="cal__month" data-cal-label></span>
+    <button
+      type="button"
+      class="cal__nav"
+      data-cal-next
+      aria-label={t("booking.calendar.next")}
+    >
+      →
+    </button>
+  </header>
+  <div class="cal__dow" data-cal-dow aria-hidden="true"></div>
+  <div class="cal__grid" data-cal-grid role="grid"></div>
+</div>
+
+<script>
+  type CalState = {
+    currentMonth: Date;
+    selectedDate: Date | null;
+  };
+
+  const root = document.querySelector<HTMLElement>("[data-booking-calendar]");
+
+  if (root) {
+    const lang = root.dataset.lang ?? "es";
+    const labelEl = root.querySelector<HTMLElement>("[data-cal-label]")!;
+    const dowEl = root.querySelector<HTMLElement>("[data-cal-dow]")!;
+    const gridEl = root.querySelector<HTMLElement>("[data-cal-grid]")!;
+    const prevBtn = root.querySelector<HTMLButtonElement>("[data-cal-prev]")!;
+    const nextBtn = root.querySelector<HTMLButtonElement>("[data-cal-next]")!;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const state: CalState = {
+      currentMonth: new Date(today.getFullYear(), today.getMonth(), 1),
+      selectedDate: null,
+    };
+
+    const monthFmt = new Intl.DateTimeFormat(lang, {
+      month: "long",
+      year: "numeric",
+    });
+    const narrowDowFmt = new Intl.DateTimeFormat(lang, { weekday: "narrow" });
+
+    function isSameDay(a: Date, b: Date): boolean {
+      return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+      );
+    }
+
+    function formatMonthLabel(d: Date): string {
+      const parts = monthFmt.formatToParts(d);
+      const month = parts.find((p) => p.type === "month")?.value ?? "";
+      const year = parts.find((p) => p.type === "year")?.value ?? "";
+      return `${month} ${year}`.toUpperCase();
+    }
+
+    function renderDow() {
+      // Jan 1 2024 was a Monday; we render Mon→Sun.
+      const labels: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(2024, 0, 1 + i);
+        labels.push(narrowDowFmt.format(d));
+      }
+      dowEl.innerHTML = labels.map((l) => `<span>${l}</span>`).join("");
+    }
+
+    function render() {
+      labelEl.textContent = formatMonthLabel(state.currentMonth);
+
+      const month = state.currentMonth.getMonth();
+      const year = state.currentMonth.getFullYear();
+      const firstOfMonth = new Date(year, month, 1);
+      // Monday = 0, Sunday = 6
+      const offset = (firstOfMonth.getDay() + 6) % 7;
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const cells: string[] = [];
+
+      for (let i = 0; i < offset; i++) {
+        cells.push(`<span class="cal__cell cal__cell--empty" aria-hidden="true"></span>`);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, month, day);
+        const isPast = d < today;
+        const isToday = isSameDay(d, today);
+        const isSelected = state.selectedDate
+          ? isSameDay(d, state.selectedDate)
+          : false;
+
+        const classes = ["cal__cell"];
+        if (isPast) classes.push("is-past");
+        if (isToday) classes.push("is-today");
+        if (isSelected) classes.push("is-selected");
+
+        const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+          day
+        ).padStart(2, "0")}`;
+
+        cells.push(
+          `<button type="button" class="${classes.join(" ")}" data-date="${iso}"${
+            isPast ? " disabled" : ""
+          }${isSelected ? ' aria-pressed="true"' : ""}>${day}</button>`
+        );
+      }
+
+      gridEl.innerHTML = cells.join("");
+    }
+
+    prevBtn.addEventListener("click", () => {
+      state.currentMonth = new Date(
+        state.currentMonth.getFullYear(),
+        state.currentMonth.getMonth() - 1,
+        1
+      );
+      render();
+    });
+
+    nextBtn.addEventListener("click", () => {
+      state.currentMonth = new Date(
+        state.currentMonth.getFullYear(),
+        state.currentMonth.getMonth() + 1,
+        1
+      );
+      render();
+    });
+
+    gridEl.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+      const cell = target.closest<HTMLButtonElement>(".cal__cell");
+      if (!cell || cell.disabled || cell.classList.contains("cal__cell--empty")) {
+        return;
+      }
+      const dateStr = cell.dataset.date;
+      if (!dateStr) return;
+      const [yr, mn, dy] = dateStr.split("-").map(Number);
+      state.selectedDate = new Date(yr, mn - 1, dy);
+      render();
+      document.dispatchEvent(
+        new CustomEvent("booking:date-selected", {
+          detail: { date: state.selectedDate, iso: dateStr },
+        })
+      );
+    });
+
+    document.addEventListener("booking:reset", () => {
+      state.selectedDate = null;
+      state.currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      render();
+    });
+
+    renderDow();
+    render();
+  }
+</script>
+
+<style>
+  .cal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .cal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.88);
+  }
+
+  .cal__nav {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.55);
+    padding: var(--space-1) var(--space-3);
+    transition: color 0.2s var(--ease-out);
+  }
+
+  .cal__nav:hover {
+    color: var(--color-accent);
+  }
+
+  .cal__month {
+    font-weight: 500;
+  }
+
+  .cal__dow {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.38);
+    text-align: center;
+  }
+
+  .cal__dow span {
+    padding: var(--space-2) 0;
+  }
+
+  .cal__grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .cal__cell {
+    aspect-ratio: 1 / 1;
+    display: grid;
+    place-items: center;
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.92);
+    background: transparent;
+    border: 1px solid transparent;
+    transition:
+      border-color 0.15s var(--ease-out),
+      background-color 0.15s var(--ease-out),
+      color 0.15s var(--ease-out);
+  }
+
+  .cal__cell:not(:disabled):not(.cal__cell--empty):hover {
+    border-color: var(--color-accent);
+  }
+
+  .cal__cell.is-past {
+    color: rgba(255, 255, 255, 0.18);
+    cursor: not-allowed;
+  }
+
+  .cal__cell.is-today::after {
+    content: "";
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background-color: var(--color-accent);
+  }
+
+  .cal__cell.is-selected,
+  .cal__cell.is-selected:hover {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: #fff;
+  }
+
+  .cal__cell.is-selected.is-today::after {
+    background-color: #fff;
+  }
+
+  .cal__cell--empty {
+    pointer-events: none;
+  }
+</style>
