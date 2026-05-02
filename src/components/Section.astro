@@ -1,0 +1,45 @@
+---
+interface Props {
+  title: string;
+  offerings: string[];
+}
+
+const { title, offerings } = Astro.props;
+---
+
+<section class="section">
+  <div class="container">
+    <h2 class="section__title">{title}</h2>
+    <ul class="section__list">
+      {offerings.map((offering) => <li>{offering}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .section {
+    padding: var(--space-8) 0;
+    border-top: 1px solid var(--color-line);
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+
+  .section__title {
+    margin: 0 0 var(--space-5);
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  .section__list {
+    margin: 0;
+    padding-left: var(--space-5);
+    color: var(--color-ink-muted);
+    font-size: var(--fs-md);
+    line-height: 1.6;
+  }
+
+  .section__list li + li {
+    margin-top: var(--space-2);
+  }
+</style>

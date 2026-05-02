@@ -2,11 +2,18 @@
 import Layout from "../layouts/Layout.astro";
 import Navbar from "../components/Navbar.astro";
 import HeroBanner from "../components/HeroBanner.astro";
+import Section from "../components/Section.astro";
+import { sections } from "../data/sections";
 ---
 
 <Layout>
   <Navbar />
   <main>
     <HeroBanner />
+    {
+      sections.map((section) => (
+        <Section title={section.title} offerings={section.offerings} />
+      ))
+    }
   </main>
 </Layout>
