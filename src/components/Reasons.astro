@@ -1,0 +1,56 @@
+---
+import { reasons } from "../data/reasons";
+---
+
+<section class="reasons">
+  <div class="container">
+    <ul class="reasons__grid">
+      {
+        reasons.map((reason) => (
+          <li class="reasons__card">
+            <h3 class="reasons__card-title">{reason.title}</h3>
+            <p class="reasons__card-content">{reason.content}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .reasons {
+    padding: var(--space-8) 0;
+    border-top: 1px solid var(--color-line);
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+
+  .reasons__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-5);
+  }
+
+  .reasons__card {
+    border: 1px solid var(--color-line);
+    padding: var(--space-5);
+    background: var(--color-surface);
+  }
+
+  .reasons__card-title {
+    margin: 0 0 var(--space-3);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  .reasons__card-content {
+    margin: 0;
+    color: var(--color-ink-muted);
+    font-size: var(--fs-md);
+    line-height: 1.55;
+  }
+</style>
