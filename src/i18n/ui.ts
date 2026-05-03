@@ -43,6 +43,11 @@ export const ui = {
     "booking.step3.reset": "← Agendar otra fecha",
     "booking.calendar.prev": "Mes anterior",
     "booking.calendar.next": "Mes siguiente",
+    "reasons.eyebrow": "[ 03 ] Razones",
+    "reasons.heading": "Por qué trabajar con Envero",
+    "reasons.lead":
+      "Siete líneas técnicas integradas, marcas líderes representadas oficialmente y operación directa en la Sonda de Campeche. Una sola conversación cubre la operación completa.",
+    "reasons.aria": "Razones para trabajar con Envero",
     "meta.title": "Envero Marine — Outstanding Services",
     "meta.description": "Servicios marinos e industriales de excelencia.",
   },
@@ -81,6 +86,11 @@ export const ui = {
     "booking.step3.reset": "← Book another date",
     "booking.calendar.prev": "Previous month",
     "booking.calendar.next": "Next month",
+    "reasons.eyebrow": "[ 03 ] Reasons",
+    "reasons.heading": "Why work with Envero",
+    "reasons.lead":
+      "Seven integrated technical lines, leading brands officially represented, and direct operations in the Sonda de Campeche. A single conversation covers the entire operation.",
+    "reasons.aria": "Reasons to work with Envero",
     "meta.title": "Envero Marine — Outstanding Services",
     "meta.description": "Outstanding marine and industrial services.",
   },

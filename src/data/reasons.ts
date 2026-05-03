@@ -1,3 +1,5 @@
+import type { Lang } from "../i18n/ui";
+
 export type BadgeColor = "primary" | "accent" | "neutral";
 
 export type Vertical =
@@ -8,9 +10,11 @@ export type Vertical =
   | "lighting"
   | "general";
 
+export type LocalizedString = Record<Lang, string>;
+
 export interface ReasonToBook {
   id: string;
-  title: string;
+  title: LocalizedString;
   content: string;
   painPoint?: string;
   evidence?: string;
@@ -24,7 +28,10 @@ export interface ReasonToBook {
 export const reasons: ReasonToBook[] = [
   {
     id: "authorized-partners",
-    title: "Representante autorizado de marcas líderes",
+    title: {
+      es: "Representante autorizado de marcas líderes",
+      en: "Authorized representative of leading brands",
+    },
     content:
       "Acceso directo a TotalEnergies, Current Technology, Fonroche Lighting America y Qer. Tecnología validada internacionalmente con respaldo y soporte del fabricante.",
     painPoint:
@@ -43,7 +50,10 @@ export const reasons: ReasonToBook[] = [
   },
   {
     id: "single-supplier",
-    title: "Seis líneas técnicas en una sola empresa",
+    title: {
+      es: "Seis líneas técnicas en una sola empresa",
+      en: "Six technical lines in a single supplier",
+    },
     content:
       "Calidad de energía, lubricación, químicos de mantenimiento, alumbrado solar, fabricación de estructuras e ingeniería naval. Una sola conversación cubre la operación completa.",
     painPoint:
@@ -55,7 +65,10 @@ export const reasons: ReasonToBook[] = [
   },
   {
     id: "carmen-location",
-    title: "Operación en Cd. del Carmen, Campeche",
+    title: {
+      es: "Operación en Cd. del Carmen, Campeche",
+      en: "Operating from Ciudad del Carmen, Campeche",
+    },
     content:
       "Sede en el corazón de la Sonda de Campeche. Cercanía operativa real con plataformas, refinerías y clientes del sector offshore mexicano.",
     painPoint:
@@ -68,7 +81,10 @@ export const reasons: ReasonToBook[] = [
   },
   {
     id: "power-quality",
-    title: "Protección contra los costos ocultos de la mala calidad de energía",
+    title: {
+      es: "Protección contra los costos ocultos de la mala calidad de energía",
+      en: "Protection against the hidden costs of poor power quality",
+    },
     content:
       "Dispositivos SPD (Supresores de Picos de Voltaje) que actúan frente a sobretensiones transitorias, extienden la vida útil de activos eléctricos y suman monitoreo continuo con alertas remotas.",
     painPoint:
@@ -82,7 +98,10 @@ export const reasons: ReasonToBook[] = [
   },
   {
     id: "solar-lighting",
-    title: "Iluminación solar 12 años sin mantenimiento",
+    title: {
+      es: "Iluminación solar 12 años sin mantenimiento",
+      en: "Solar lighting, 12 years maintenance-free",
+    },
     content:
       "Proyectos de alumbrado público solar Fonroche Lighting, líder mundial en la categoría. Apaga el costo recurrente de mantener alumbrado convencional y la dependencia de la red eléctrica.",
     painPoint:
@@ -95,7 +114,10 @@ export const reasons: ReasonToBook[] = [
   },
   {
     id: "naval-engineering",
-    title: "Ingeniería naval con cobertura regulatoria",
+    title: {
+      es: "Ingeniería naval con cobertura regulatoria",
+      en: "Naval engineering with regulatory coverage",
+    },
     content:
       "Diseño y rediseño de embarcaciones, abanderamiento, escantillonado, estabilidad, planos de seguridad y contraincendio. Documentación lista para Casas Clasificadoras y organismos reconocidos.",
     painPoint: "Proyectos navales que se atoran en la aprobación regulatoria.",
@@ -108,7 +130,10 @@ export const reasons: ReasonToBook[] = [
   },
   {
     id: "anticorrosive-fabrication",
-    title: "Estructuras metálicas con tratamiento anticorrosivo",
+    title: {
+      es: "Estructuras metálicas con tratamiento anticorrosivo",
+      en: "Steel structures with anti-corrosion treatment",
+    },
     content:
       "Fabricación a medida de racks, bastidores, contenedores, escaleras marinas, pasamanos y bases para equipos, con acabado anticorrosivo pensado para entornos marítimos y offshore.",
     painPoint:

@@ -1,17 +1,45 @@
 ---
 import { reasons } from "../data/reasons";
+import { resolveLang, useTranslations } from "../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const icons: Record<string, string> = {
+  badge: "fa-certificate",
+  layers: "fa-layer-group",
+  compass: "fa-location-dot",
+  shield: "fa-shield-halved",
+  sun: "fa-solar-panel",
+  anchor: "fa-anchor",
+  structure: "fa-industry",
+};
 ---
 
 <section class="reasons">
-  <div class="container">
-    <ul class="reasons__grid">
+  <div class="container reasons__head">
+    <p class="reasons__eyebrow">{t("reasons.eyebrow")}</p>
+    <h2 class="reasons__heading">{t("reasons.heading")}</h2>
+    <p class="reasons__lead">{t("reasons.lead")}</p>
+  </div>
+
+  <div class="reasons__viewport" tabindex="0" aria-label={t("reasons.aria")}>
+    <ul class="reasons__track">
       {
-        reasons.map((reason) => (
-          <li class="reasons__card">
-            <h3 class="reasons__card-title">{reason.title}</h3>
-            <p class="reasons__card-content">{reason.content}</p>
-          </li>
-        ))
+        reasons.map((reason) => {
+          const iconClass = icons[reason.icon ?? "badge"] ?? icons.badge;
+          return (
+            <li class="reasons__card" data-badge={reason.badgeColor ?? "neutral"}>
+              <span class="reasons__icon" aria-hidden="true">
+                <i class={`fa-solid ${iconClass}`} aria-hidden="true" />
+              </span>
+              <h3 class="reasons__title">
+                <span>{reason.title[lang]}</span>
+                <span class="reasons__arrow" aria-hidden="true">→</span>
+              </h3>
+            </li>
+          );
+        })
       }
     </ul>
   </div>
@@ -25,32 +53,149 @@ import { reasons } from "../data/reasons";
     color: var(--color-ink);
   }
 
-  .reasons__grid {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: var(--space-5);
+  .reasons__head {
+    margin-bottom: var(--space-7);
+    max-width: 720px;
   }
 
-  .reasons__card {
-    border: 1px solid var(--color-line);
-    padding: var(--space-5);
-    background: var(--color-surface);
+  .reasons__eyebrow {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-accent);
   }
 
-  .reasons__card-title {
-    margin: 0 0 var(--space-3);
-    font-size: var(--fs-lg);
+  .reasons__heading {
+    margin: 0 0 var(--space-4);
+    font-size: var(--fs-2xl);
     font-weight: 600;
     color: var(--color-primary);
   }
 
-  .reasons__card-content {
+  .reasons__lead {
     margin: 0;
-    color: var(--color-ink-muted);
     font-size: var(--fs-md);
-    line-height: 1.55;
+    line-height: 1.6;
+    color: var(--color-ink-muted);
+  }
+
+  .reasons__viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline-start: max(
+      var(--space-5),
+      calc((100vw - var(--container-max)) / 2 + var(--space-5))
+    );
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .reasons__viewport::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .reasons__viewport::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .reasons__viewport::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+  }
+
+  .reasons__track {
+    list-style: none;
+    margin: 0;
+    padding-block: var(--space-3);
+    padding-inline: max(
+      var(--space-5),
+      calc((100vw - var(--container-max)) / 2 + var(--space-5))
+    );
+    display: flex;
+    gap: var(--space-5);
+    width: max-content;
+  }
+
+  .reasons__card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    flex: 0 0 320px;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    padding: var(--space-5);
+    scroll-snap-align: start;
+    transition: border-color 200ms var(--ease-out);
+  }
+
+  .reasons__card:hover {
+    border-color: var(--color-primary-soft);
+  }
+
+  .reasons__icon {
+    flex: 1 1 auto;
+    display: grid;
+    place-items: center;
+    width: 80%;
+    color: var(--color-primary);
+    container-type: inline-size;
+    transition: color 200ms var(--ease-out), transform 400ms var(--ease-out);
+  }
+
+  .reasons__icon :global(.fa-solid) {
+    font-size: min(240px, 65cqw);
+    line-height: 1;
+  }
+
+  .reasons__card[data-badge="accent"] .reasons__icon {
+    color: var(--color-accent);
+  }
+
+  .reasons__card[data-badge="neutral"] .reasons__icon {
+    color: var(--color-ink);
+  }
+
+  .reasons__card:hover .reasons__icon {
+    transform: scale(1.04);
+  }
+
+  .reasons__title {
+    margin: 0;
+    font-size: var(--fs-md);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-primary);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .reasons__arrow {
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-weight: 400;
+    color: var(--color-ink-muted);
+    transition: transform 200ms var(--ease-out), color 200ms var(--ease-out);
+  }
+
+  .reasons__card:hover .reasons__arrow {
+    transform: translateX(4px);
+    color: var(--color-primary);
+  }
+
+  @media (max-width: 640px) {
+    .reasons__card {
+      flex-basis: 260px;
+    }
   }
 </style>
