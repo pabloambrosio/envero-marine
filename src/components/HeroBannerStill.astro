@@ -1,25 +1,12 @@
 ---
 import { resolveLang, useTranslations } from "../i18n/utils";
-import BookingWizard from "./booking/BookingWizard.astro";
 
 const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
 ---
 
 <section class="hero">
-  <div class="hero__bg" aria-hidden="true">
-    <video
-      class="hero__video"
-      autoplay
-      muted
-      loop
-      playsinline
-
-      preload="metadata"
-    >
-      <source src="/video-herobanner-comprimido.webm" type="video/webm" />
-    </video>
-  </div>
+  <div class="hero__bg" aria-hidden="true"></div>
 
   <div class="container hero__inner">
     <div class="hero__content">
@@ -60,8 +47,54 @@ const t = useTranslations(lang);
       </ul>
     </div>
 
-    <div class="hero__aside">
-      <BookingWizard />
+    <div class="hero__aside" aria-hidden="true">
+      <figure class="hero__collage">
+        <img
+          class="hero__img hero__img--alt hero__img--top"
+          src="/hero/engineer-blueprint.jpg"
+          alt=""
+          loading="eager"
+          decoding="async"
+          width="896"
+          height="1200"
+        />
+        <img
+          class="hero__img hero__img--micro hero__img--micro-tr"
+          src="/hero/platform-dawn.jpg"
+          alt=""
+          loading="eager"
+          decoding="async"
+          width="896"
+          height="1200"
+        />
+        <img
+          class="hero__img hero__img--main"
+          src="/hero/operators-tablet.jpg"
+          alt=""
+          loading="eager"
+          decoding="async"
+          width="896"
+          height="1200"
+        />
+        <img
+          class="hero__img hero__img--micro hero__img--micro-bl"
+          src="/hero/vessel-blueprint.jpg"
+          alt=""
+          loading="eager"
+          decoding="async"
+          width="896"
+          height="1200"
+        />
+        <img
+          class="hero__img hero__img--alt hero__img--bottom"
+          src="/hero/technician-panel.jpg"
+          alt=""
+          loading="eager"
+          decoding="async"
+          width="1024"
+          height="1024"
+        />
+      </figure>
     </div>
   </div>
 </section>
@@ -82,24 +115,12 @@ const t = useTranslations(lang);
     inset: 0;
     z-index: -1;
     overflow: hidden;
-    background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
-  }
-
-  .hero__video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
-
-  .hero__bg::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background-color: rgba(10, 42, 36, 0.55);
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-deep) 0%,
+      var(--color-primary) 55%,
+      var(--color-primary-soft) 100%
+    );
   }
 
   .hero__bg::after {
@@ -119,7 +140,7 @@ const t = useTranslations(lang);
 
   .hero__inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 480px);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 560px);
     gap: var(--space-8);
     align-items: center;
   }
@@ -133,6 +154,70 @@ const t = useTranslations(lang);
     justify-content: flex-end;
   }
 
+  .hero__collage {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 4 / 5;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .hero__img {
+    position: absolute;
+    display: block;
+    height: auto;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background-color: var(--color-primary-deep);
+  }
+
+  .hero__img--main {
+    top: 50%;
+    left: 50%;
+    width: 78%;
+    aspect-ratio: 3 / 4;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  }
+
+  .hero__img--alt {
+    width: 62%;
+    aspect-ratio: 1 / 1;
+    z-index: 1;
+    opacity: 0.95;
+  }
+
+  .hero__img--top {
+    top: 4%;
+    left: -28%;
+  }
+
+  .hero__img--bottom {
+    bottom: 2%;
+    right: -30%;
+  }
+
+  .hero__img--micro {
+    width: 26%;
+    aspect-ratio: 1 / 1;
+    z-index: 1;
+    opacity: 0.88;
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+
+  .hero__img--micro-tr {
+    top: 2%;
+    right: 2%;
+  }
+
+  .hero__img--micro-bl {
+    bottom: 6%;
+    left: 2%;
+  }
+
   @media (max-width: 1024px) {
     .hero__inner {
       grid-template-columns: 1fr;
@@ -140,7 +225,42 @@ const t = useTranslations(lang);
       align-items: stretch;
     }
     .hero__aside {
-      justify-content: stretch;
+      justify-content: center;
+    }
+    .hero__collage {
+      max-width: 420px;
+      aspect-ratio: 5 / 4;
+    }
+    .hero__img--main {
+      width: 50%;
+    }
+    .hero__img--alt {
+      width: 36%;
+    }
+    .hero__img--top {
+      top: 8%;
+      left: 2%;
+    }
+    .hero__img--bottom {
+      bottom: 6%;
+      right: 2%;
+    }
+    .hero__img--micro {
+      width: 18%;
+    }
+    .hero__img--micro-tr {
+      top: 4%;
+      right: 4%;
+    }
+    .hero__img--micro-bl {
+      bottom: 8%;
+      left: 4%;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .hero__collage {
+      max-width: 360px;
     }
   }
 
@@ -161,6 +281,14 @@ const t = useTranslations(lang);
     font-weight: 600;
     line-height: 1.04;
     letter-spacing: -0.025em;
+  }
+
+  .hero__title-emph {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--color-accent);
   }
 
   .hero__checks {
