@@ -30,16 +30,21 @@ const icons: Record<string, string> = {
           reasons.map((reason) => {
             const iconClass = icons[reason.icon ?? "badge"] ?? icons.badge;
             return (
-              <li class="reasons__card" data-badge={reason.badgeColor ?? "neutral"}>
-                <div class="reasons__cardHead">
-                  <span class="reasons__icon" aria-hidden="true">
-                    <i class={`fa-solid ${iconClass}`} aria-hidden="true" />
-                  </span>
+              <li class={`reasons__card${reason.title[lang].length > 50 ? ' reasons__card--long-title' : ''}`} data-badge={reason.badgeColor ?? "neutral"}>
+                <div class="reasons__cardFront">
+                  <div class="reasons__cardHead">
+                    <span class="reasons__icon" aria-hidden="true">
+                      <i class={`fa-solid ${iconClass}`} aria-hidden="true" />
+                    </span>
+                  </div>
+                  <h3 class="reasons__title">
+                    <span>{reason.title[lang]}</span>
+                    <span class="reasons__arrow" aria-hidden="true">→</span>
+                  </h3>
                 </div>
-                <h3 class="reasons__title">
-                  <span>{reason.title[lang]}</span>
-                  <span class="reasons__arrow" aria-hidden="true">→</span>
-                </h3>
+                <div class="reasons__cardReveal">
+                  <p class={`reasons__content${reason.content.length > 176 ? ' reasons__content--long' : ''}`}>{reason.content}</p>
+                </div>
               </li>
             );
           })
@@ -135,21 +140,60 @@ const icons: Record<string, string> = {
 
   .reasons__card {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    overflow: hidden;
     flex: 0 0 360px;
     aspect-ratio: 4 / 3;
     border: 1px solid var(--color-line);
     border-radius: 6px;
     background: var(--color-surface);
-    padding: var(--space-6);
     scroll-snap-align: start;
     transition: border-color 200ms var(--ease-out);
   }
 
   .reasons__card:hover {
     border-color: var(--color-primary-soft);
+  }
+
+  .reasons__cardFront,
+  .reasons__cardReveal {
+    position: absolute;
+    inset: 0;
+    padding: var(--space-6);
+  }
+
+  .reasons__cardFront {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transform: translateY(0);
+    /* transition: transform 240ms cubic-bezier(0.4, 0, 1, 1); */
+    transition: transform 400ms var(--ease-spring) 30ms;
+  }
+
+  .reasons__cardReveal {
+    transform: translateY(100%);
+    background: var(--color-primary);
+    border-radius: 8px 8px 0 0;
+    transition: transform 400ms var(--ease-spring) 30ms;
+  }
+
+  .reasons__content {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: rgba(245, 242, 236, 0.75);
+  }
+
+  .reasons__content--long {
+    font-size: var(--fs-xs);
+  }
+
+  .reasons__card:hover .reasons__cardFront {
+    transform: translateY(-60%);
+  }
+
+  .reasons__card:hover .reasons__cardReveal {
+    transform: translateY(35%);
   }
 
   .reasons__cardHead {
@@ -214,6 +258,10 @@ const icons: Record<string, string> = {
     color: var(--color-primary);
   }
 
+  .reasons__card--long-title .reasons__title {
+    font-size: var(--fs-md);
+  }
+
   /* ── tablet ─────────────────────────────────────────── */
   @media (max-width: 960px) {
     .reasons {
@@ -243,6 +291,10 @@ const icons: Record<string, string> = {
 
     .reasons__card {
       flex-basis: 320px;
+    }
+
+    .reasons__cardFront,
+    .reasons__cardReveal {
       padding: var(--space-5);
     }
   }
@@ -273,6 +325,10 @@ const icons: Record<string, string> = {
     .reasons__card {
       flex-basis: 260px;
       aspect-ratio: 5 / 4;
+    }
+
+    .reasons__cardFront,
+    .reasons__cardReveal {
       padding: var(--space-4);
     }
 
