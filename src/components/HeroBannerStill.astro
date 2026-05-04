@@ -75,11 +75,13 @@ const t = useTranslations(lang);
   .hero {
     position: relative;
     isolation: isolate;
-    min-height: 80vh;
-    padding-top: calc(var(--header-height) + var(--space-8));
-    padding-bottom: var(--space-9);
+    min-height: calc(100svh - var(--hero-peek, 140px));
+    padding-top: calc(var(--header-height) + var(--space-5));
+    padding-bottom: var(--space-5);
     color: #fff;
     overflow: hidden;
+    display: flex;
+    align-items: center;
   }
 
   .hero__bg {
@@ -116,6 +118,7 @@ const t = useTranslations(lang);
   .hero__inner {
     position: relative;
     z-index: 1;
+    width: 100%;
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
     gap: var(--space-8);
@@ -136,7 +139,7 @@ const t = useTranslations(lang);
   .hero__collage {
     position: relative;
     width: 100%;
-    max-width: 520px;
+    max-width: min(520px, 56vh);
     aspect-ratio: 5 / 6;
     margin: 0;
   }
@@ -192,8 +195,8 @@ const t = useTranslations(lang);
   }
 
   .hero__title {
-    margin-top: var(--space-5);
-    font-size: var(--fs-4xl);
+    margin-top: var(--space-4);
+    font-size: clamp(2.25rem, min(6vw, 7.2vh), 5rem);
     font-weight: 600;
     line-height: 1.04;
     letter-spacing: -0.025em;
@@ -208,7 +211,7 @@ const t = useTranslations(lang);
   }
 
   .hero__checks {
-    margin-top: var(--space-5);
+    margin-top: var(--space-4);
     list-style: none;
     padding: 0;
     display: flex;
@@ -238,14 +241,14 @@ const t = useTranslations(lang);
   }
 
   .hero__actions {
-    margin-top: var(--space-7);
+    margin-top: var(--space-6);
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
   }
 
   .hero__stats {
-    margin-top: var(--space-8);
+    margin-top: var(--space-6);
     border-top: 1px solid rgba(255, 255, 255, 0.14);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

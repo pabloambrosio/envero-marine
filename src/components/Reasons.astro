@@ -27,13 +27,11 @@ const icons: Record<string, string> = {
     <div class="reasons__viewport" tabindex="0" aria-label={t("reasons.aria")}>
       <ul class="reasons__track">
         {
-          reasons.map((reason, i) => {
+          reasons.map((reason) => {
             const iconClass = icons[reason.icon ?? "badge"] ?? icons.badge;
-            const index = String(i + 1).padStart(2, "0");
             return (
               <li class="reasons__card" data-badge={reason.badgeColor ?? "neutral"}>
                 <div class="reasons__cardHead">
-                  <span class="reasons__index">[ {index} ]</span>
                   <span class="reasons__icon" aria-hidden="true">
                     <i class={`fa-solid ${iconClass}`} aria-hidden="true" />
                   </span>
@@ -53,7 +51,7 @@ const icons: Record<string, string> = {
 
 <style>
   .reasons {
-    padding: var(--space-8) 0;
+    padding: var(--space-6) 0;
     border-top: 1px solid var(--color-line);
     background: var(--color-bg);
     color: var(--color-ink);
@@ -65,12 +63,17 @@ const icons: Record<string, string> = {
     grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
     gap: var(--space-8);
     align-items: start;
-    padding-left: max(var(--space-5), calc((100vw - var(--container-max)) / 2 + var(--space-5)));
+    margin-left: max(var(--space-3), calc((100vw - var(--container-max)) / 4 + var(--space-3)));
+    padding-left: max(var(--space-4), calc((100vw - var(--container-max)) / 4 + var(--space-4)));
+    padding-block: var(--space-6);
+    background-color: #EAE7DF;
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
   }
 
   .reasons__head {
-    padding-block: var(--space-3) var(--space-5);
-    padding-right: var(--space-5);
+    padding-block: var(--space-4) var(--space-5);
+    padding-right: var(--space-6);
   }
 
   .reasons__eyebrow {
@@ -138,8 +141,9 @@ const icons: Record<string, string> = {
     flex: 0 0 360px;
     aspect-ratio: 4 / 3;
     border: 1px solid var(--color-line);
+    border-radius: 6px;
     background: var(--color-surface);
-    padding: var(--space-5);
+    padding: var(--space-6);
     scroll-snap-align: start;
     transition: border-color 200ms var(--ease-out);
   }
@@ -155,21 +159,13 @@ const icons: Record<string, string> = {
     gap: var(--space-4);
   }
 
-  .reasons__index {
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-ink-muted);
-  }
-
   .reasons__icon {
     display: grid;
     place-items: center;
     width: 56px;
     height: 56px;
     border: 1px solid var(--color-line);
+    border-radius: 6px;
     color: var(--color-primary);
     transition: color 200ms var(--ease-out), border-color 200ms var(--ease-out);
   }
@@ -247,6 +243,7 @@ const icons: Record<string, string> = {
 
     .reasons__card {
       flex-basis: 320px;
+      padding: var(--space-5);
     }
   }
 

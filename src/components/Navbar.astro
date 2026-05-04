@@ -58,41 +58,11 @@ const links: Array<{ key: TranslationKey; href: string }> = [
     height: var(--header-height);
     display: flex;
     align-items: center;
-    background-color: var(--color-bg);
-    color: var(--color-ink);
-    border-bottom: 1px solid var(--color-line);
-    transition:
-      background-color 0.3s ease,
-      border-color 0.3s ease,
-      color 0.3s ease;
-  }
-
-  .nav__menu a {
-    color: var(--color-ink-muted);
-  }
-
-  .nav__menu a:hover {
-    color: var(--color-ink);
-  }
-
-  .nav--scrolled {
     background-color: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
-    border-bottom-color: rgba(255, 255, 255, 0.08);
     color: #fff;
-  }
-
-  .nav--scrolled .nav__menu a {
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  .nav--scrolled .nav__menu a:hover {
-    color: var(--color-accent-soft);
-  }
-
-  .nav--scrolled .nav__brand-sub {
-    opacity: 0.6;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .nav__inner {
@@ -164,12 +134,12 @@ const links: Array<{ key: TranslationKey; href: string }> = [
     gap: var(--space-2);
     font-size: var(--fs-sm);
     font-weight: 500;
-    color: var(--color-ink-muted);
+    color: rgba(255, 255, 255, 0.85);
     transition: color 0.2s var(--ease-out);
   }
 
   .nav__menu a:hover {
-    color: var(--color-ink);
+    color: var(--color-accent-soft);
   }
 
   .nav__num {
@@ -197,14 +167,3 @@ const links: Array<{ key: TranslationKey; href: string }> = [
     }
   }
 </style>
-
-<script>
-  const nav = document.querySelector(".nav") as HTMLElement;
-
-  const update = () => {
-    nav.classList.toggle("nav--scrolled", window.scrollY > 10);
-  };
-
-  update();
-  window.addEventListener("scroll", update, { passive: true });
-</script>
