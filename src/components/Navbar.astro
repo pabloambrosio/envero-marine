@@ -18,13 +18,7 @@ const links: Array<{ key: TranslationKey; href: string }> = [
 <header class="nav">
   <div class="container nav__inner">
     <a href={homeHref} class="nav__brand" aria-label={t("nav.brandAria")}>
-      <span class="nav__brand-mark">E</span>
-      <span class="nav__brand-text">
-        <span class="nav__brand-name">
-          E<em>nvero</em>
-        </span>
-        <span class="nav__brand-sub">Marine</span>
-      </span>
+      <img src="/logos/envero.png" alt="Envero Marine" class="nav__brand-img" />
     </a>
 
     <nav class="nav__menu" aria-label={t("nav.menuLabel")}>
@@ -75,48 +69,12 @@ const links: Array<{ key: TranslationKey; href: string }> = [
   .nav__brand {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-3);
   }
 
-  .nav__brand-mark {
-    width: 38px;
-    height: 38px;
-    display: grid;
-    place-items: center;
-    background-color: var(--color-accent);
-    color: #fff;
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 1.25rem;
-    line-height: 1;
-  }
-
-  .nav__brand-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
-  }
-
-  .nav__brand-name {
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-  }
-
-  .nav__brand-name em {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 500;
-    color: var(--color-accent);
-  }
-
-  .nav__brand-sub {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    opacity: 0.6;
-    margin-top: 6px;
+  .nav__brand-img {
+    display: block;
+    height: 48px;
+    width: auto;
   }
 
   .nav__menu ul {
