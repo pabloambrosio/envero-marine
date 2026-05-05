@@ -40,7 +40,9 @@ const PREVIEW_OFFERINGS = 3;
 <section class="services" id="servicios" aria-label={t("services.aria")}>
   <div class="services__container">
     <header class="services__head">
-      <h2 class="services__heading">{t("services.heading")}</h2>
+      <h2 class="services__heading">
+        {t("services.heading.lead")}<em class="services__heading-emph">{t("services.heading.emph")}</em>{t("services.heading.tail")}
+      </h2>
       <p class="services__lead">{t("services.lead")}</p>
     </header>
 
@@ -211,11 +213,19 @@ const PREVIEW_OFFERINGS = 3;
 
   .services__heading {
     margin: 0;
-    font-size: var(--fs-2xl);
+    font-size: clamp(2.25rem, 1.4rem + 2vw, 3.25rem);
     font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -0.02em;
+    line-height: 1.02;
+    letter-spacing: -0.03em;
     color: #fff;
+  }
+
+  .services__heading-emph {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    letter-spacing: -0.012em;
+    color: var(--color-accent);
   }
 
   .services__lead {
@@ -476,7 +486,7 @@ const PREVIEW_OFFERINGS = 3;
     }
 
     .services__heading {
-      font-size: var(--fs-xl);
+      font-size: clamp(1.9rem, 4.5vw, 2.6rem);
     }
 
     .services__grid {
@@ -501,7 +511,7 @@ const PREVIEW_OFFERINGS = 3;
     }
 
     .services__heading {
-      font-size: var(--fs-lg);
+      font-size: clamp(1.7rem, 7vw, 2.1rem);
     }
 
     .services__lead {
