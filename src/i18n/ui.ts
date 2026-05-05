@@ -11,7 +11,6 @@ export const ui = {
   es: {
     "nav.services": "Servicios",
     "nav.about": "Nosotros",
-    "nav.projects": "Proyectos",
     "nav.contact": "Contacto",
     "nav.cta": "Cotización",
     "nav.menuLabel": "Navegación principal",
@@ -105,7 +104,6 @@ export const ui = {
   en: {
     "nav.services": "Services",
     "nav.about": "About",
-    "nav.projects": "Projects",
     "nav.contact": "Contact",
     "nav.cta": "Get a quote",
     "nav.menuLabel": "Main navigation",

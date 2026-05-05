@@ -10,7 +10,6 @@ const year = new Date().getFullYear();
 const navLinks: Array<{ key: TranslationKey; href: string }> = [
   { key: "nav.services", href: "#servicios" },
   { key: "nav.about", href: "#nosotros" },
-  { key: "nav.projects", href: "#proyectos" },
   { key: "nav.contact", href: "#contacto" },
 ];
 
@@ -22,7 +21,7 @@ const brands = [
 ];
 ---
 
-<footer class="footer" aria-label={t("footer.aria")}>
+<footer class="footer" id="contacto" aria-label={t("footer.aria")}>
   <div class="footer__container">
     <div class="footer__top">
       <a class="footer__brand" href={homeHref} aria-label={t("nav.brandAria")}>

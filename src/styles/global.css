@@ -17,6 +17,11 @@ html {
   scroll-behavior: smooth;
 }
 
+section[id],
+footer[id] {
+  scroll-margin-top: var(--header-height);
+}
+
 body {
   font-family: var(--font-sans);
   font-size: var(--fs-md);
