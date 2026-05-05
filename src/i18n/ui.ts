@@ -51,6 +51,29 @@ export const ui = {
     "reasons.lead":
       "Seis líneas técnicas integradas, cuatro marcas globales representadas oficialmente y operación directa desde la Sonda de Campeche. Lo que normalmente coordinás entre tres proveedores, acá entra en una sola conversación.",
     "reasons.aria": "Capacidades de Envero",
+    "about.aria": "Sobre Envero Marine",
+    "about.eyebrow": "[ 02 ] Nosotros",
+    "about.heading": "Empresa técnica con base en la Sonda de Campeche.",
+    "about.lead":
+      "Diseñamos, abastecemos e implementamos soluciones para la industria y el sector naval. Operamos como representante oficial de marcas globales y como contratista directo en fabricación de estructuras e ingeniería naval — desde la misma sede operativa.",
+    "about.mission.label": "Misión",
+    "about.mission.body":
+      "Cuidar y optimizar las instalaciones de nuestros clientes, ofreciendo productos y servicios de la más alta calidad y eficiencia. Brindamos soluciones personalizadas en calidad de energía, mantenimiento, arquitectura e ingeniería naval, garantizando seguridad, confiabilidad y valor sostenible.",
+    "about.vision.label": "Visión",
+    "about.vision.body":
+      "Ser la empresa de referencia en soluciones integrales para la industria y el sector naval, reconocida por su excelencia, innovación y compromiso con la eficiencia y la calidad en cada proyecto.",
+    "about.meta.base": "Sede operativa",
+    "about.meta.baseValue": "Cd. del Carmen, Campeche · MX",
+    "about.meta.scope": "Cobertura",
+    "about.meta.scopeValue": "Industria & sector naval",
+    "about.meta.year": "Operando desde",
+    "about.meta.yearValue": "2024",
+    "about.tag.intro": "[ A1 · Nosotros ]",
+    "about.tag.founders": "[ A2 · Fundadores ]",
+    "about.tag.mission": "[ B1 · Misión ]",
+    "about.tag.vision": "[ B2 · Visión ]",
+    "about.founders.label": "Fundadores",
+    "about.founders.caption": "Foto pendiente · Equipo fundador",
     "services.heading": "Lo que cubrimos.",
     "services.lead":
       "Cuatro marcas representadas oficialmente y dos servicios propios. Lubricación, calidad de energía, químicos, alumbrado solar, fabricación e ingeniería naval — desde la misma conversación.",
@@ -106,6 +129,29 @@ export const ui = {
     "reasons.lead":
       "Six integrated technical lines, four officially represented global brands, and direct operations from the Sonda de Campeche. What usually takes three different vendors fits into a single conversation.",
     "reasons.aria": "Envero capabilities",
+    "about.aria": "About Envero Marine",
+    "about.eyebrow": "[ 02 ] About",
+    "about.heading": "A technical firm based in the Sonda de Campeche.",
+    "about.lead":
+      "We design, supply and deliver solutions for industry and the naval sector. We operate as an authorized representative of global brands and as a direct contractor for steel fabrication and naval engineering — all from the same operating base.",
+    "about.mission.label": "Mission",
+    "about.mission.body":
+      "To care for and optimize our clients' facilities by offering products and services of the highest quality and efficiency. We deliver tailored solutions in power quality, maintenance, naval architecture and engineering — guaranteeing safety, reliability and sustainable value.",
+    "about.vision.label": "Vision",
+    "about.vision.body":
+      "To be the reference company in integrated solutions for industry and the naval sector, recognized for excellence, innovation and a commitment to efficiency and quality in every project.",
+    "about.meta.base": "Operating base",
+    "about.meta.baseValue": "Cd. del Carmen, Campeche · MX",
+    "about.meta.scope": "Coverage",
+    "about.meta.scopeValue": "Industry & naval sector",
+    "about.meta.year": "Operating since",
+    "about.meta.yearValue": "2024",
+    "about.tag.intro": "[ A1 · About ]",
+    "about.tag.founders": "[ A2 · Founders ]",
+    "about.tag.mission": "[ B1 · Mission ]",
+    "about.tag.vision": "[ B2 · Vision ]",
+    "about.founders.label": "Founders",
+    "about.founders.caption": "Photo pending · Founding team",
     "services.heading": "What we cover.",
     "services.lead":
       "Four officially represented brands and two in-house services. Lubrication, power quality, chemicals, solar lighting, steel fabrication, and naval engineering — all from the same conversation.",
