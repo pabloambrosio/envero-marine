@@ -1,0 +1,318 @@
+---
+import { resolveLang, useTranslations } from "../i18n/utils";
+import type { TranslationKey } from "../i18n/ui";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+const homeHref = lang === "en" ? "/en/" : "/";
+const year = new Date().getFullYear();
+
+const navLinks: Array<{ key: TranslationKey; href: string }> = [
+  { key: "nav.services", href: "#servicios" },
+  { key: "nav.about", href: "#nosotros" },
+  { key: "nav.projects", href: "#proyectos" },
+  { key: "nav.contact", href: "#contacto" },
+];
+
+const brands = [
+  "TotalEnergies",
+  "Current Technology",
+  "Qer",
+  "Fonroche Lighting",
+];
+---
+
+<footer class="footer" aria-label={t("footer.aria")}>
+  <div class="footer__container">
+    <div class="footer__top">
+      <a class="footer__brand" href={homeHref} aria-label={t("nav.brandAria")}>
+        <img
+          src="/logos/envero.png"
+          alt="Envero Marine"
+          class="footer__brandImg"
+        />
+      </a>
+      <p class="footer__tagline">{t("footer.tagline")}</p>
+      <span class="footer__tag" aria-hidden="true">{t("footer.tag")}</span>
+    </div>
+
+    <div class="footer__cols">
+      <section class="footer__col">
+        <h3 class="footer__colHead">{t("footer.cols.navigate")}</h3>
+        <ul class="footer__list">
+          {
+            navLinks.map((link) => (
+              <li>
+                <a class="footer__link" href={link.href}>
+                  {t(link.key)}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section class="footer__col">
+        <h3 class="footer__colHead">{t("footer.cols.contact")}</h3>
+        <ul class="footer__list">
+          <li>
+            <a
+              class="footer__link"
+              href={`mailto:${t("footer.contact.email")}`}
+            >
+              <i class="fa-solid fa-envelope footer__icon" aria-hidden="true"></i>
+              {t("footer.contact.email")}
+            </a>
+          </li>
+          <li>
+            <a
+              class="footer__link"
+              href="https://wa.me/529381353874"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fa-brands fa-whatsapp footer__icon" aria-hidden="true"></i>
+              {t("footer.contact.whatsapp")}
+            </a>
+          </li>
+          <li>
+            <a
+              class="footer__link"
+              href="https://envemar.com.mx"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fa-solid fa-globe footer__icon" aria-hidden="true"></i>
+              {t("footer.contact.web")}
+            </a>
+          </li>
+        </ul>
+      </section>
+
+      <section class="footer__col">
+        <h3 class="footer__colHead">{t("footer.cols.brands")}</h3>
+        <ul class="footer__list footer__list--brands">
+          {brands.map((b) => <li>{b}</li>)}
+        </ul>
+      </section>
+
+      <section class="footer__col">
+        <h3 class="footer__colHead">{t("footer.cols.base")}</h3>
+        <address class="footer__address">
+          <span>{t("footer.address.street")}</span>
+          <span>{t("footer.address.zip")}</span>
+          <span>{t("footer.address.city")}</span>
+        </address>
+      </section>
+    </div>
+
+    <div class="footer__bottom">
+      <span class="footer__copy">
+        © {year} Envero Marine · Outstanding Services
+      </span>
+      <span class="footer__legal">{t("footer.legal")}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    background: var(--color-primary-deep);
+    color: var(--color-bg);
+    border-top: 1px solid var(--color-line);
+    padding: var(--space-8) 0 var(--space-5);
+  }
+
+  .footer__container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+  }
+
+  /* ── top: brand + tagline + tag ───────────────────────── */
+  .footer__top {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-6);
+    padding-bottom: var(--space-6);
+    margin-bottom: var(--space-6);
+    border-bottom: 1px solid rgba(245, 242, 236, 0.12);
+  }
+
+  .footer__brand {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .footer__brandImg {
+    display: block;
+    height: 56px;
+    width: auto;
+    filter: brightness(0) invert(1);
+    opacity: 0.95;
+  }
+
+  .footer__tagline {
+    margin: 0;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    color: rgba(245, 242, 236, 0.7);
+    max-width: 56ch;
+  }
+
+  .footer__tag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  /* ── columns ──────────────────────────────────────────── */
+  .footer__cols {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+    padding-bottom: var(--space-7);
+  }
+
+  .footer__col {
+    min-width: 0;
+  }
+
+  .footer__colHead {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid rgba(245, 242, 236, 0.12);
+  }
+
+  .footer__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .footer__list--brands li {
+    font-size: var(--fs-sm);
+    color: rgba(245, 242, 236, 0.85);
+  }
+
+  .footer__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+    color: rgba(245, 242, 236, 0.75);
+    transition: color 0.2s var(--ease-out);
+    word-break: break-word;
+  }
+
+  .footer__link:hover {
+    color: var(--color-accent-soft);
+  }
+
+  .footer__icon {
+    flex: 0 0 auto;
+    width: 14px;
+    color: var(--color-accent);
+    opacity: 0.8;
+    font-size: 0.9rem;
+  }
+
+  .footer__address {
+    font-style: normal;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: rgba(245, 242, 236, 0.85);
+  }
+
+  /* ── bottom ───────────────────────────────────────────── */
+  .footer__bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+    border-top: 1px solid rgba(245, 242, 236, 0.12);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(245, 242, 236, 0.55);
+  }
+
+  /* ── tablet ───────────────────────────────────────────── */
+  @media (max-width: 960px) {
+    .footer {
+      padding-top: var(--space-7);
+    }
+
+    .footer__top {
+      grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+
+    .footer__tag {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    .footer__cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+  }
+
+  /* ── mobile ───────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .footer {
+      padding: var(--space-6) 0 var(--space-4);
+    }
+
+    .footer__top {
+      grid-template-columns: 1fr;
+      align-items: start;
+      gap: var(--space-4);
+      padding-bottom: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+
+    .footer__brandImg {
+      height: 44px;
+    }
+
+    .footer__tag {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    .footer__cols {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+      padding-bottom: var(--space-5);
+    }
+
+    .footer__bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-2);
+      font-size: 0.65rem;
+    }
+  }
+</style>
