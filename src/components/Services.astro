@@ -35,6 +35,23 @@ const titlesByLang: Record<string, Record<"es" | "en", string>> = {
 };
 
 const PREVIEW_OFFERINGS = 3;
+
+const modalData = sections.map((section) => ({
+  id: section.id,
+  title: titlesByLang[section.id]?.[lang] ?? section.title,
+  description: section.description[lang],
+  isOwnService: section.isOwnService,
+  offerings: section.offerings,
+  logo: logos[section.id] ?? null,
+  iconClass: icons[section.id] ?? "fa-bolt",
+  kindLabel: section.isOwnService
+    ? t("services.kind.own")
+    : t("services.kind.partner"),
+}));
+
+const modalLabels = {
+  prefillPrefix: t("services.modal.prefillPrefix"),
+};
 ---
 
 <section class="services" id="servicios" aria-label={t("services.aria")}>
@@ -57,9 +74,15 @@ const PREVIEW_OFFERINGS = 3;
           return (
             <li
               class={`services__card services__card--${section.isOwnService ? "own" : "partner"}${logo ? " services__card--hasLogo" : ""}`}
-              data-section-id={section.id}
             >
-              <a class="services__link" href={`#${section.id}`} aria-label={title}>
+              <button
+                class="services__link"
+                type="button"
+                data-section-id={section.id}
+                aria-label={title}
+                aria-haspopup="dialog"
+                aria-controls="services-modal"
+              >
                 <div class="services__media" aria-hidden="true">
                   {logo ? (
                     <img
@@ -116,14 +139,147 @@ const PREVIEW_OFFERINGS = 3;
                     </span>
                   </div>
                 </div>
-              </a>
+              </button>
             </li>
           );
         })
       }
     </ul>
   </div>
+
+  <dialog
+    class="services__modal"
+    id="services-modal"
+    aria-labelledby="services-modal-title"
+  >
+    <button
+      class="services__modalClose"
+      type="button"
+      data-modal-close
+      aria-label={t("services.modal.close")}
+    >
+      <span aria-hidden="true">×</span>
+    </button>
+
+    <header class="services__modalHead">
+      <div class="services__modalMedia" aria-hidden="true">
+        <span class="services__modalMediaId" data-modal-id />
+        <div class="services__modalMediaArt" data-modal-art />
+      </div>
+      <div class="services__modalIntro">
+        <span class="services__modalKind" data-modal-kind />
+        <h3 class="services__modalTitle" id="services-modal-title" data-modal-title />
+        <p class="services__modalDescription" data-modal-description />
+      </div>
+    </header>
+
+    <div class="services__modalBody">
+      <h4 class="services__modalSubtitle">{t("services.modal.capabilities")}</h4>
+      <ol class="services__modalList" data-modal-offerings />
+    </div>
+
+    <footer class="services__modalFooter">
+      <button class="services__modalCta" type="button" data-modal-cta>
+        <span>{t("services.modal.cta")}</span>
+        <span class="services__modalArrow" aria-hidden="true">→</span>
+      </button>
+    </footer>
+  </dialog>
 </section>
+
+<script is:inline define:vars={{ modalData, modalLabels }}>
+  const modal = document.getElementById("services-modal");
+  if (modal) {
+    const titleEl = modal.querySelector("[data-modal-title]");
+    const kindEl = modal.querySelector("[data-modal-kind]");
+    const idEl = modal.querySelector("[data-modal-id]");
+    const artEl = modal.querySelector("[data-modal-art]");
+    const descriptionEl = modal.querySelector("[data-modal-description]");
+    const offeringsEl = modal.querySelector("[data-modal-offerings]");
+    const ctaEl = modal.querySelector("[data-modal-cta]");
+    const closeEl = modal.querySelector("[data-modal-close]");
+    const bodyEl = modal.querySelector(".services__modalBody");
+
+    const sectionsMap = new Map(modalData.map((s) => [s.id, s]));
+    let activeSection = null;
+
+    function populate(data) {
+      modal.dataset.own = data.isOwnService ? "true" : "false";
+      titleEl.textContent = data.title;
+      kindEl.textContent = data.kindLabel;
+      idEl.textContent = data.id;
+      descriptionEl.textContent = data.description;
+      descriptionEl.hidden = !data.description;
+
+      artEl.innerHTML = "";
+      if (data.logo) {
+        const img = document.createElement("img");
+        img.src = data.logo;
+        img.alt = "";
+        img.loading = "lazy";
+        img.decoding = "async";
+        artEl.appendChild(img);
+      } else {
+        const icon = document.createElement("i");
+        icon.className = `fa-solid ${data.iconClass}`;
+        icon.setAttribute("aria-hidden", "true");
+        artEl.appendChild(icon);
+      }
+
+      offeringsEl.innerHTML = "";
+      data.offerings.forEach((text, i) => {
+        const li = document.createElement("li");
+        const num = document.createElement("span");
+        num.className = "services__modalNum";
+        num.textContent = String(i + 1).padStart(2, "0");
+        const txt = document.createElement("span");
+        txt.className = "services__modalText";
+        txt.textContent = text;
+        li.appendChild(num);
+        li.appendChild(txt);
+        offeringsEl.appendChild(li);
+      });
+
+      if (bodyEl) bodyEl.scrollTop = 0;
+    }
+
+    document.querySelectorAll("[data-section-id]").forEach((card) => {
+      card.addEventListener("click", (event) => {
+        event.preventDefault();
+        const id = card.dataset.sectionId;
+        const data = sectionsMap.get(id);
+        if (!data) return;
+        activeSection = data;
+        populate(data);
+        modal.showModal();
+      });
+    });
+
+    closeEl.addEventListener("click", () => modal.close());
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) modal.close();
+    });
+
+    ctaEl.addEventListener("click", () => {
+      if (!activeSection) return;
+      const message = `${modalLabels.prefillPrefix}${activeSection.title}.`;
+      modal.close();
+
+      const target = document.getElementById("contacto");
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      const textarea = document.getElementById("contact-message");
+      if (textarea) {
+        textarea.value = message;
+        window.setTimeout(() => {
+          textarea.focus();
+          textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+        }, 380);
+      }
+    });
+  }
+</script>
 
 <style>
   .services {
@@ -278,7 +434,20 @@ const PREVIEW_OFFERINGS = 3;
     display: flex;
     flex-direction: column;
     height: 100%;
+    width: 100%;
     color: inherit;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+  }
+
+  .services__link:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
   }
 
   /* ── media (placeholder) ──────────────────────────────── */
@@ -472,6 +641,274 @@ const PREVIEW_OFFERINGS = 3;
     color: var(--color-primary);
   }
 
+  /* ── modal ────────────────────────────────────────────── */
+  .services__modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    padding: 0;
+    width: min(720px, calc(100vw - 2 * var(--space-5)));
+    max-height: min(86vh, 100%);
+    background: var(--color-surface);
+    color: var(--color-ink);
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 24px 48px rgba(10, 42, 36, 0.18);
+  }
+
+  .services__modal::backdrop {
+    background: rgba(10, 42, 36, 0.72);
+  }
+
+  .services__modal[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .services__modal[data-own="true"]::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-accent);
+    pointer-events: none;
+  }
+
+  .services__modalClose {
+    position: absolute;
+    top: var(--space-3);
+    right: var(--space-3);
+    z-index: 3;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: 0;
+    color: var(--color-primary);
+    opacity: 0.55;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: opacity 200ms var(--ease-out), color 200ms var(--ease-out);
+  }
+
+  .services__modalClose:hover {
+    opacity: 1;
+    color: var(--color-primary);
+  }
+
+  .services__modalHead {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .services__modalMedia {
+    position: relative;
+    min-height: 220px;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(
+        ellipse at 50% 45%,
+        rgba(255, 255, 255, 0.85) 0%,
+        rgba(255, 255, 255, 0) 62%
+      ),
+      var(--color-bg);
+    border-right: 1px solid var(--color-line);
+    overflow: hidden;
+  }
+
+  .services__modalMedia::before {
+    content: "";
+    position: absolute;
+    bottom: var(--space-3);
+    left: var(--space-3);
+    width: 10px;
+    height: 10px;
+    border-bottom: 1px solid var(--color-primary);
+    border-left: 1px solid var(--color-primary);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+
+  .services__modal[data-own="true"] .services__modalMedia::before {
+    border-color: var(--color-accent);
+    opacity: 0.7;
+  }
+
+  .services__modalMediaId {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    opacity: 0.55;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .services__modalMediaArt {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: var(--space-4);
+  }
+
+  .services__modalMediaArt img {
+    max-width: 86%;
+    max-height: 78%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+  }
+
+  .services__modalMediaArt :global(.fa-solid) {
+    font-size: 4rem;
+    line-height: 1;
+    color: var(--color-primary);
+    opacity: 0.32;
+  }
+
+  .services__modal[data-own="true"] .services__modalMediaArt :global(.fa-solid) {
+    color: var(--color-accent);
+    opacity: 0.5;
+  }
+
+  .services__modalIntro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    padding-right: var(--space-7);
+  }
+
+  .services__modalKind {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .services__modal[data-own="true"] .services__modalKind {
+    color: var(--color-accent);
+  }
+
+  .services__modalTitle {
+    margin: 0;
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--color-primary);
+  }
+
+  .services__modalDescription {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.55;
+    color: var(--color-ink-muted);
+  }
+
+  .services__modalDescription[hidden] {
+    display: none;
+  }
+
+  .services__modalBody {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: var(--space-5);
+  }
+
+  .services__modalSubtitle {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .services__modalList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .services__modalList :global(li) {
+    display: flex;
+    gap: var(--space-4);
+    align-items: baseline;
+    padding-block: var(--space-3);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .services__modalList :global(.services__modalNum) {
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+  }
+
+  .services__modalList :global(.services__modalText) {
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--color-ink);
+  }
+
+  .services__modalFooter {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid var(--color-line);
+    background: rgba(14, 61, 52, 0.02);
+  }
+
+  .services__modalCta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--color-accent);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: var(--space-3) var(--space-5);
+    border: 0;
+    cursor: pointer;
+    transition: background-color 200ms var(--ease-out);
+  }
+
+  .services__modalCta:hover {
+    background: var(--color-primary);
+  }
+
+  .services__modalArrow {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .services__modalCta:hover .services__modalArrow {
+    transform: translateX(4px);
+  }
+
   /* ── tablet ───────────────────────────────────────────── */
   @media (max-width: 960px) {
     .services {
@@ -534,6 +971,51 @@ const PREVIEW_OFFERINGS = 3;
 
     .services__mediaIcon :global(.fa-solid) {
       font-size: 2.5rem;
+    }
+
+    .services__modal {
+      width: calc(100vw - 2 * var(--space-3));
+      max-height: 92vh;
+    }
+
+    .services__modalHead {
+      grid-template-columns: 1fr;
+    }
+
+    .services__modalMedia {
+      min-height: 160px;
+      border-right: 0;
+      border-bottom: 1px solid var(--color-line);
+    }
+
+    .services__modalMediaArt {
+      padding: var(--space-4);
+    }
+
+    .services__modalMediaArt :global(.fa-solid) {
+      font-size: 3.25rem;
+    }
+
+    .services__modalIntro {
+      padding: var(--space-4);
+      padding-right: var(--space-6);
+    }
+
+    .services__modalTitle {
+      font-size: var(--fs-md);
+    }
+
+    .services__modalBody {
+      padding: var(--space-4);
+    }
+
+    .services__modalFooter {
+      padding: var(--space-3) var(--space-4);
+    }
+
+    .services__modalCta {
+      width: 100%;
+      justify-content: space-between;
     }
   }
 </style>
