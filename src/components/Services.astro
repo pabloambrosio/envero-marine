@@ -52,6 +52,11 @@ const modalData = sections.map((section) => ({
 const modalLabels = {
   prefillPrefix: t("services.modal.prefillPrefix"),
 };
+
+const expandLabels = {
+  more: t("services.showMore"),
+  less: t("services.showLess"),
+};
 ---
 
 <section class="services" id="servicios" aria-label={t("services.aria")}>
@@ -63,7 +68,7 @@ const modalLabels = {
       <p class="services__lead">{t("services.lead")}</p>
     </header>
 
-    <ul class="services__grid">
+    <ul class="services__grid" id="services-grid" data-services-grid data-collapsed="true">
       {
         sections.map((section) => {
           const title = titlesByLang[section.id]?.[lang] ?? section.title;
@@ -145,6 +150,19 @@ const modalLabels = {
         })
       }
     </ul>
+
+    <div class="services__expandWrap">
+      <button
+        class="services__expand"
+        type="button"
+        data-services-expand
+        aria-expanded="false"
+        aria-controls="services-grid"
+      >
+        <span class="services__expandLabel" data-expand-label>{t("services.showMore")}</span>
+        <span class="services__expandArrow" aria-hidden="true">↓</span>
+      </button>
+    </div>
   </div>
 
   <dialog
@@ -187,7 +205,7 @@ const modalLabels = {
   </dialog>
 </section>
 
-<script is:inline define:vars={{ modalData, modalLabels }}>
+<script is:inline define:vars={{ modalData, modalLabels, expandLabels }}>
   const modal = document.getElementById("services-modal");
   if (modal) {
     const titleEl = modal.querySelector("[data-modal-title]");
@@ -341,6 +359,19 @@ const modalLabels = {
           textarea.setSelectionRange(textarea.value.length, textarea.value.length);
         }, 380);
       }
+    });
+  }
+
+  const grid = document.querySelector("[data-services-grid]");
+  const expandBtn = document.querySelector("[data-services-expand]");
+  const expandLabelEl = expandBtn?.querySelector("[data-expand-label]");
+  if (grid && expandBtn && expandLabelEl) {
+    expandBtn.addEventListener("click", () => {
+      const collapsed = grid.dataset.collapsed === "true";
+      const next = !collapsed;
+      grid.dataset.collapsed = next ? "true" : "false";
+      expandBtn.setAttribute("aria-expanded", next ? "false" : "true");
+      expandLabelEl.textContent = next ? expandLabels.more : expandLabels.less;
     });
   }
 </script>
@@ -982,6 +1013,61 @@ const modalLabels = {
 
   .services__modalCta:hover .services__modalArrow {
     transform: translateX(4px);
+  }
+
+  /* ── expand toggle ────────────────────────────────────── */
+  .services__expandWrap {
+    display: none;
+    margin-top: var(--space-5);
+    justify-content: center;
+  }
+
+  .services__expand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    padding: var(--space-3) var(--space-5);
+    cursor: pointer;
+    transition: border-color 200ms var(--ease-out),
+      background-color 200ms var(--ease-out);
+  }
+
+  .services__expand:hover {
+    border-color: var(--color-accent);
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .services__expand:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .services__expandArrow {
+    display: inline-block;
+    transition: transform 240ms var(--ease-out);
+  }
+
+  .services__expand[aria-expanded="true"] .services__expandArrow {
+    transform: rotate(180deg);
+  }
+
+  /* ── collapse on smaller viewports ────────────────────── */
+  @media (max-width: 1175px) {
+    .services__grid[data-collapsed="true"] .services__card:nth-child(n + 3) {
+      display: none;
+    }
+
+    .services__expandWrap {
+      display: flex;
+    }
   }
 
   /* ── tablet ───────────────────────────────────────────── */
