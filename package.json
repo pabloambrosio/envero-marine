@@ -9,7 +9,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "seed:admin": "node --env-file=.env scripts/seed-admin.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.3",
