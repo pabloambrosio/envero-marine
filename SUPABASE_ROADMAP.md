@@ -44,6 +44,68 @@ Trigger `set_updated_at` aplicado a `app_user`, `quiz`, `quiz_question`, `appoin
 - **Auth solo para staff.** Clientes finales no se autentican; entran al quiz/contacto como anónimos.
 - **Doble capa de defensa:** RLS en la DB + checks en endpoints. La `secret key` (service-role) bypassa RLS y vive solo del lado servidor.
 - **Sesión en cookies HttpOnly** (cuando hagamos SSR), vía `@supabase/ssr`.
+- **Validación con Zod v4** en todos los endpoints. El schema vive con el tipo del feature; el helper `validateBody` parsea + valida en una sola llamada y devuelve la `Response` 400 lista cuando falla.
+
+## Estructura de endpoints
+
+Convención que sostenemos desde el primer endpoint (login). Cualquier endpoint nuevo se monta igual sin pensarlo dos veces.
+
+### Tres capas, responsabilidades estrictas
+
+1. **`src/pages/api/<...>.ts`** — endpoint. Solo flujo HTTP: valida body con Zod, compone el cliente Supabase, llama al servicio, mapea resultado a `Response`. Cero lógica de dominio.
+2. **`src/modules/<dominio>/services/<feature>.ts`** — servicio. Recibe input ya validado y dependencias (cliente Supabase). Hace la operación y devuelve un union discriminado `{ ok: true, ... } | { ok: false, error }`. No conoce HTTP.
+3. **`src/modules/<dominio>/types/<feature>.ts`** — schema Zod + tipo inferido + tipos de resultado. La forma de la entrada y la salida del feature, en un solo lugar.
+
+### Helpers compartidos
+
+- **`src/lib/http.ts`**:
+  - `json(payload, status = 200)` — construye `Response` JSON.
+  - `validateBody(request, schema)` — parsea body + corre `safeParse`. Devuelve `{ ok: true, data } | { ok: false, response }`. La `response` ya viene formateada (400 con `{ error: "invalid_json" | "invalid_request", issues }`).
+- **`src/lib/supabase/server.ts`**: `createSupabaseServerClient({ request, cookies })` — cliente SSR bindeado a las cookies de la request actual. **Una instancia por request** (no cachear — los cookie handlers son per-request, mezclar sesiones entre usuarios sería un bug de seguridad).
+
+### Endpoint canónico (referencia)
+
+[`src/pages/api/admin/login.ts`](src/pages/api/admin/login.ts) es el patrón a copiar:
+
+```ts
+export const POST: APIRoute = async ({ request, cookies }) => {
+  const validated = await validateBody(request, LoginSchema);
+  if (!validated.ok) return validated.response;
+
+  const supabase = createSupabaseServerClient({ request, cookies });
+  const result = await login(validated.data, supabase);
+
+  return result.ok
+    ? json({ user: result.user })
+    : json({ error: result.error }, 401);
+};
+```
+
+Endpoints sin body (logout, etc.) saltean el `validateBody` y van directo a componer cliente + llamar servicio. Mismo patrón sin la validación.
+
+### Schemas Zod
+
+- Schema y tipo conviven en `types/<feature>.ts`: `LoginSchema` + `type LoginRequest = z.infer<typeof LoginSchema>`. El schema es la fuente de verdad, el tipo se infiere.
+- Errores de validación devuelven `issues` con `path` + `message` por campo. Útil para mostrar errores inline en el front.
+- En **Zod v4**, las validaciones de formato son top-level: `z.email()`, `z.url()`, `z.uuid()`. No usar `z.string().email()` (deprecado).
+
+### Cookies y auth (cómo viajan al cliente)
+
+`createSupabaseServerClient` registra callbacks `getAll`/`setAll` que delegan en `Astro.cookies`. Cuando un servicio llama `supabase.auth.signInWithPassword` o `supabase.auth.signOut`, el SDK de Supabase invoca esos callbacks y las cookies (`sb-<ref>-auth-token`) se serializan automáticamente como `Set-Cookie` en la `Response`. **No hay que tocar headers manualmente** — Astro maneja la serialización al devolver el handler.
+
+### Middleware
+
+[`src/middleware.ts`](src/middleware.ts) protege `/admin/*`, `/api/admin/*`, `/vendors/*`, `/api/vendors/*`. Excepciones explícitas: `/admin/login`, `/vendors/login`, endpoints `/api/.../login` y `/api/.../logout`.
+
+- **`getUser()` y no `getSession()`** — hace network call a Supabase para validar que el token no esté revocado. Más seguro para área admin, ~50-150ms por request a zona protegida.
+- **HTML → redirect** al `/login` del namespace correspondiente. **`/api/*` → 401 JSON.** El usuario autenticado queda en `Astro.locals.user` para downstream.
+- El middleware **corre globalmente en invocación** pero **filtra por path** adentro. Visitantes a `/`, `/en`, etc. salen en `next()` inmediato sin tocar Supabase.
+
+### Páginas estáticas vs SSR
+
+- **`prerender = true`** en páginas públicas (home, secciones de marketing). Se buildean a HTML estático y las sirve la CDN de Cloudflare directo desde el edge — el Worker (donde vive el middleware) ni se entera.
+- **SSR (default)** en `/admin/*`, `/vendors/*`, `/api/*`. Cada request invoca el Worker, el middleware corre, los handlers tienen `Astro.locals.user`.
+- **Nunca prerender en páginas protegidas** — el middleware en build hornearía un redirect en el HTML estático. La regla se cae sola: páginas protegidas dependen del usuario actual, son SSR por naturaleza.
 
 ## Roadmap
 
@@ -55,10 +117,13 @@ Trigger `set_updated_at` aplicado a `app_user`, `quiz`, `quiz_question`, `appoin
 - [x] Seed admin idempotente ([`scripts/seed-admin.js`](scripts/seed-admin.js))
 - [ ] **RLS habilitado en las 6 tablas** + policies por rol (`anon`, `authenticated`, admin, vendor)
 - [ ] Trigger `handle_new_user` en `auth.users` para auto-crear fila en `app_user` (decidir: ¿lo queremos o lo dejamos manual desde el endpoint de creación de vendor?)
-- [ ] Adapter `@astrojs/cloudflare` + `output: 'server'` con `prerender = true` por defecto en páginas públicas
-- [ ] Cliente server-side (`src/lib/supabase/server.ts`) con `@supabase/ssr` + cookies de Astro
-- [ ] Middleware de Astro (`src/middleware.ts`) que protege `/admin/*`
-- [ ] Página `/admin/login`
+- [x] Adapter `@astrojs/cloudflare` + `output: 'server'` ([astro.config.mjs](astro.config.mjs))
+- [x] `prerender = true` en homes públicos ([`src/pages/index.astro`](src/pages/index.astro), [`src/pages/en/index.astro`](src/pages/en/index.astro)) — agregar al resto de páginas marketing cuando se sumen
+- [x] Cliente server-side ([`src/lib/supabase/server.ts`](src/lib/supabase/server.ts)) con `@supabase/ssr` + cookies de Astro
+- [x] Middleware de Astro ([`src/middleware.ts`](src/middleware.ts)) que protege `/admin/*`, `/api/admin/*`, `/vendors/*`, `/api/vendors/*`
+- [x] Endpoint `POST /api/admin/login` con Zod validation ([`src/pages/api/admin/login.ts`](src/pages/api/admin/login.ts))
+- [x] Endpoint `POST /api/admin/logout` ([`src/pages/api/admin/logout.ts`](src/pages/api/admin/logout.ts))
+- [ ] Página `/admin/login` (UI del form que postea al endpoint)
 - [ ] Endpoint admin para crear vendors (valida caller con sesión, usa service-role internamente)
 - [ ] Tipos TS generados (`yarn supabase gen types typescript --local > src/lib/supabase/database.types.ts`)
 - [ ] Env vars de prod en Cloudflare Workers Secrets (URL, publishable, secret) — jamás commit
