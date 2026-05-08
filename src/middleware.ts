@@ -18,9 +18,17 @@ const PUBLIC_EXCEPTIONS = new Set([
   "/api/vendors/logout",
 ]);
 
+const ADMIN_ONLY_PREFIXES = ["/api/admin/users"];
+
 function isProtected(pathname: string): boolean {
   if (PUBLIC_EXCEPTIONS.has(pathname)) return false;
   return PROTECTED_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
+  );
+}
+
+function requiresAdmin(pathname: string): boolean {
+  return ADMIN_ONLY_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/"),
   );
 }
@@ -51,6 +59,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return json({ error: "unauthorized" }, 401);
     }
     return context.redirect(loginUrlFor(pathname));
+  }
+
+  if (requiresAdmin(pathname)) {
+    const { data: appUser } = await supabase
+      .from("app_user")
+      .select("role, active")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!appUser || appUser.role !== "admin" || !appUser.active) {
+      if (pathname.startsWith("/api/")) {
+        return json({ error: "forbidden" }, 403);
+      }
+      return context.redirect(loginUrlFor(pathname));
+    }
   }
 
   context.locals.user = user;
