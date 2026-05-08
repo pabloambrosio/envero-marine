@@ -45,6 +45,8 @@ Trigger `set_updated_at` aplicado a `app_user`, `quiz`, `quiz_question`, `appoin
 - **Doble capa de defensa:** RLS en la DB + checks en endpoints. La `secret key` (service-role) bypassa RLS y vive solo del lado servidor.
 - **Sesión en cookies HttpOnly** (cuando hagamos SSR), vía `@supabase/ssr`.
 - **Validación con Zod v4** en todos los endpoints. El schema vive con el tipo del feature; el helper `validateBody` parsea + valida en una sola llamada y devuelve la `Response` 400 lista cuando falla.
+- **Cliente service-role en `src/lib/supabase/admin.ts`** para operaciones que necesitan bypassear RLS desde el server (ej: crear `auth.users` + `app_user` en el mismo flujo). Server-only, jamás importar desde el browser. La sesión publishable del admin logueado **no** sirve para esto — `auth.admin.*` exige service-role.
+- **Trigger `handle_new_user` descartado.** Crear usuarios pasa por el endpoint admin: el servicio `createUser` orquesta `auth.admin.createUser` + insert en `app_user` con rollback (delete del `auth.users`) si el segundo paso falla. Más explícito que un trigger oculto y mantiene el flujo en código revisable.
 
 ## Estructura de endpoints
 
@@ -62,6 +64,7 @@ Convención que sostenemos desde el primer endpoint (login). Cualquier endpoint 
   - `json(payload, status = 200)` — construye `Response` JSON.
   - `validateBody(request, schema)` — parsea body + corre `safeParse`. Devuelve `{ ok: true, data } | { ok: false, response }`. La `response` ya viene formateada (400 con `{ error: "invalid_json" | "invalid_request", issues }`).
 - **`src/lib/supabase/server.ts`**: `createSupabaseServerClient({ request, cookies })` — cliente SSR bindeado a las cookies de la request actual. **Una instancia por request** (no cachear — los cookie handlers son per-request, mezclar sesiones entre usuarios sería un bug de seguridad).
+- **`src/lib/supabase/admin.ts`**: `createSupabaseAdminClient()` — cliente service-role para operaciones que bypassean RLS (crear usuarios en `auth.users`, etc.). Sin cookies, sin sesión. Server-only.
 
 ### Endpoint canónico (referencia)
 
@@ -100,6 +103,7 @@ Endpoints sin body (logout, etc.) saltean el `validateBody` y van directo a comp
 - **`getUser()` y no `getSession()`** — hace network call a Supabase para validar que el token no esté revocado. Más seguro para área admin, ~50-150ms por request a zona protegida.
 - **HTML → redirect** al `/login` del namespace correspondiente. **`/api/*` → 401 JSON.** El usuario autenticado queda en `Astro.locals.user` para downstream.
 - El middleware **corre globalmente en invocación** pero **filtra por path** adentro. Visitantes a `/`, `/en`, etc. salen en `next()` inmediato sin tocar Supabase.
+- **Segundo nivel de gating: `ADMIN_ONLY_PREFIXES`.** Después de validar sesión, si el path matchea un prefijo admin-only (hoy `/api/admin/users`), el middleware lee `app_user` por `id` y exige `role = 'admin' AND active = true`. Si no, `/api/*` → 403 JSON, HTML → redirect login. Una query extra a `app_user` solo cuando el path lo requiere — para sesión sola (área admin general) no se paga ese costo.
 
 ### Páginas estáticas vs SSR
 
@@ -115,16 +119,16 @@ Endpoints sin body (logout, etc.) saltean el `validateBody` y van directo a comp
 - [x] Cliente browser en [`src/lib/supabase/client.ts`](src/lib/supabase/client.ts)
 - [x] Auth config: signup cerrado, sin OAuth/SMS/MFA, password 8+ (loose para dev)
 - [x] Seed admin idempotente ([`scripts/seed-admin.js`](scripts/seed-admin.js))
-- [ ] **RLS habilitado en las 6 tablas** + policies por rol (`anon`, `authenticated`, admin, vendor)
-- [ ] Trigger `handle_new_user` en `auth.users` para auto-crear fila en `app_user` (decidir: ¿lo queremos o lo dejamos manual desde el endpoint de creación de vendor?)
+- [x] **RLS habilitado en las 6 tablas** + policies por rol (`anon`, `authenticated`, admin, vendor) ([`supabase/migrations/20260507203452_rls_policies.sql`](supabase/migrations/20260507203452_rls_policies.sql))
 - [x] Adapter `@astrojs/cloudflare` + `output: 'server'` ([astro.config.mjs](astro.config.mjs))
 - [x] `prerender = true` en homes públicos ([`src/pages/index.astro`](src/pages/index.astro), [`src/pages/en/index.astro`](src/pages/en/index.astro)) — agregar al resto de páginas marketing cuando se sumen
 - [x] Cliente server-side ([`src/lib/supabase/server.ts`](src/lib/supabase/server.ts)) con `@supabase/ssr` + cookies de Astro
-- [x] Middleware de Astro ([`src/middleware.ts`](src/middleware.ts)) que protege `/admin/*`, `/api/admin/*`, `/vendors/*`, `/api/vendors/*`
+- [x] Cliente service-role server-only ([`src/lib/supabase/admin.ts`](src/lib/supabase/admin.ts))
+- [x] Middleware de Astro ([`src/middleware.ts`](src/middleware.ts)) que protege `/admin/*`, `/api/admin/*`, `/vendors/*`, `/api/vendors/*` + admin-only gate sobre `/api/admin/users`
 - [x] Endpoint `POST /api/admin/login` con Zod validation ([`src/pages/api/admin/login.ts`](src/pages/api/admin/login.ts))
 - [x] Endpoint `POST /api/admin/logout` ([`src/pages/api/admin/logout.ts`](src/pages/api/admin/logout.ts))
+- [x] CRUD admin de staff: `/api/admin/users` (GET list, POST create) + `/api/admin/users/[id]` (GET, PATCH, DELETE soft via `active=false`). Módulo en [`src/modules/users/`](src/modules/users/) con types Zod + 5 servicios separados por operación.
 - [ ] Página `/admin/login` (UI del form que postea al endpoint)
-- [ ] Endpoint admin para crear vendors (valida caller con sesión, usa service-role internamente)
 - [ ] Tipos TS generados (`yarn supabase gen types typescript --local > src/lib/supabase/database.types.ts`)
 - [ ] Env vars de prod en Cloudflare Workers Secrets (URL, publishable, secret) — jamás commit
 
