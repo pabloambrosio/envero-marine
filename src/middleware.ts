@@ -18,7 +18,11 @@ const PUBLIC_EXCEPTIONS = new Set([
   "/api/vendors/logout",
 ]);
 
-const ADMIN_ONLY_PREFIXES = ["/api/admin/users", "/api/admin/quizzes"];
+const ADMIN_ONLY_PREFIXES = [
+  "/api/admin/users",
+  "/api/admin/quizzes",
+  "/api/admin/appointments",
+];
 
 function isProtected(pathname: string): boolean {
   if (PUBLIC_EXCEPTIONS.has(pathname)) return false;
