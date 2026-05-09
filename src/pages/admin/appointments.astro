@@ -1,0 +1,120 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../admin/guard";
+import { adminFetch } from "../../admin/api";
+import { formatTimestamp, truncateId } from "../../admin/format";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
+
+interface AppAppointment {
+  id: string;
+  client_id: string;
+  vendor_id: string | null;
+  appointment_date: string;
+  status: AppointmentStatus;
+  created_at: string;
+}
+
+interface AppointmentsResponse {
+  appointments: AppAppointment[];
+}
+
+const result = await adminFetch<AppointmentsResponse>(
+  Astro,
+  "/api/admin/appointments",
+);
+const appointments = result.ok ? result.data.appointments : [];
+
+const STATUS_LABEL: Record<AppointmentStatus, string> = {
+  pending: "Pendiente",
+  confirmed: "Confirmada",
+  cancelled: "Cancelada",
+  completed: "Completada",
+};
+
+const STATUS_BADGE: Record<AppointmentStatus, string> = {
+  pending: "badge--warn",
+  confirmed: "badge--ok",
+  cancelled: "badge--off",
+  completed: "badge--done",
+};
+---
+
+<AdminLayout title="Citas · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <span class="adminPage__eyebrow">03 / Citas</span>
+      <h1 class="adminPage__title">Citas</h1>
+      <p class="adminPage__lead">
+        Solicitudes y citas confirmadas. La gestión (cambiar estado, asignar
+        vendor) llega en una fase posterior.
+      </p>
+    </header>
+
+    {
+      !result.ok ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">Error</span>
+          <h2 class="adminState__title">No pudimos cargar las citas.</h2>
+          <p class="adminState__lead">
+            La API devolvió un error{" "}
+            {result.status > 0 ? `(${result.status})` : "de red"}. Reintentá la
+            carga.
+          </p>
+          <a class="adminState__retry" href="/admin/appointments">
+            Reintentar →
+          </a>
+        </div>
+      ) : appointments.length === 0 ? (
+        <div class="adminState">
+          <span class="adminState__tag">Vacío</span>
+          <h2 class="adminState__title">Sin citas registradas.</h2>
+          <p class="adminState__lead">
+            Cuando se creen solicitudes o citas confirmadas, van a aparecer
+            acá.
+          </p>
+        </div>
+      ) : (
+        <div class="adminTable__wrap">
+          <table class="adminTable">
+            <thead>
+              <tr>
+                <th class="is-mono">Fecha cita</th>
+                <th class="is-mono">Cliente</th>
+                <th class="is-mono">Vendor</th>
+                <th class="is-mono">Estado</th>
+                <th class="is-mono">Creado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {appointments.map((a) => (
+                <tr>
+                  <td class="is-mono is-tight">
+                    {formatTimestamp(a.appointment_date)}
+                  </td>
+                  <td class="is-mono is-muted" title={a.client_id}>
+                    {truncateId(a.client_id)}
+                  </td>
+                  <td class="is-mono is-muted" title={a.vendor_id ?? undefined}>
+                    {a.vendor_id ? truncateId(a.vendor_id) : "—"}
+                  </td>
+                  <td>
+                    <span class:list={["badge", STATUS_BADGE[a.status]]}>
+                      {STATUS_LABEL[a.status]}
+                    </span>
+                  </td>
+                  <td class="is-mono is-tight is-muted">
+                    {formatTimestamp(a.created_at)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </section>
+</AdminLayout>

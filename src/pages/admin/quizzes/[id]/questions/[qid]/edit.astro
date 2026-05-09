@@ -1,0 +1,368 @@
+---
+import AdminLayout from "../../../../../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../../../../../admin/guard";
+import { adminFetch } from "../../../../../../admin/api";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+const { id, qid } = Astro.params;
+if (!id || !qid) return Astro.redirect("/admin/quizzes");
+
+interface AppQuestion {
+  id: string;
+  quiz_id: string;
+  position: number;
+  prompt: string;
+  type: string;
+  required: boolean;
+  active: boolean;
+}
+
+interface QuestionResponse {
+  question: AppQuestion;
+}
+
+const result = await adminFetch<QuestionResponse>(
+  Astro,
+  `/api/admin/quizzes/${id}/questions/${qid}`,
+);
+const isNotFound = !result.ok && result.status === 404;
+const question = result.ok ? result.data.question : null;
+
+const KNOWN_TYPES = ["text", "single_choice", "multi_choice", "number", "rating"];
+const isKnownType = question ? KNOWN_TYPES.includes(question.type) : true;
+---
+
+<AdminLayout title="Editar pregunta · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <span class="adminPage__eyebrow">02 / Quizzes · Editar pregunta</span>
+      <h1 class="adminPage__title">Editar pregunta</h1>
+      <p class="adminPage__lead">
+        Cambios sobre el cuerpo de la pregunta. Para reordenar, usá el handle
+        en la lista del quiz.
+      </p>
+    </header>
+
+    {
+      isNotFound ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">No encontrado</span>
+          <h2 class="adminState__title">Pregunta no encontrada.</h2>
+          <p class="adminState__lead">
+            Puede haber sido borrada o el ID es incorrecto.
+          </p>
+          <a class="adminState__retry" href={`/admin/quizzes/${id}`}>
+            Volver al quiz →
+          </a>
+        </div>
+      ) : !result.ok || !question ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">Error</span>
+          <h2 class="adminState__title">No pudimos cargar la pregunta.</h2>
+          <p class="adminState__lead">
+            La API devolvió un error
+            {result.ok === false && result.status > 0
+              ? ` (${result.status})`
+              : " de red"}
+            . Reintentá la carga.
+          </p>
+          <a
+            class="adminState__retry"
+            href={`/admin/quizzes/${id}/questions/${qid}/edit`}
+          >
+            Reintentar →
+          </a>
+        </div>
+      ) : (
+        <form
+          class="adminForm"
+          novalidate
+          data-form-edit-question
+          data-quiz-id={id}
+          data-question-id={question.id}
+        >
+          <div class="adminForm__alert" data-form-alert hidden>
+            <span class="adminForm__alertTag" aria-hidden="true">
+              ERROR
+            </span>
+            <span class="adminForm__alertText" data-form-alert-text />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="question-position">
+              <span class="adminForm__labelText">Posición</span>
+              <span class="adminForm__labelReq" aria-hidden="true">
+                *
+              </span>
+            </label>
+            <input
+              class="adminForm__input"
+              type="number"
+              name="position"
+              id="question-position"
+              min="0"
+              step="1"
+              required
+              value={question.position}
+              data-form-input="position"
+            />
+            <span class="adminForm__fieldError" data-form-error="position" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="question-prompt">
+              <span class="adminForm__labelText">Pregunta</span>
+              <span class="adminForm__labelReq" aria-hidden="true">
+                *
+              </span>
+            </label>
+            <textarea
+              class="adminForm__input adminForm__input--textarea"
+              name="prompt"
+              id="question-prompt"
+              rows="3"
+              required
+              data-form-input="prompt">{question.prompt}</textarea>
+            <span class="adminForm__fieldError" data-form-error="prompt" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="question-type">
+              <span class="adminForm__labelText">Tipo</span>
+            </label>
+            <select
+              class="adminForm__select"
+              name="type"
+              id="question-type"
+              data-form-input="type"
+            >
+              <option value="text" selected={question.type === "text"}>
+                Text · respuesta libre
+              </option>
+              <option
+                value="single_choice"
+                selected={question.type === "single_choice"}
+              >
+                Single choice · una opción
+              </option>
+              <option
+                value="multi_choice"
+                selected={question.type === "multi_choice"}
+              >
+                Multi choice · varias opciones
+              </option>
+              <option value="number" selected={question.type === "number"}>
+                Number · numérica
+              </option>
+              <option value="rating" selected={question.type === "rating"}>
+                Rating · puntaje
+              </option>
+              {!isKnownType && (
+                <option value={question.type} selected>
+                  {question.type}
+                </option>
+              )}
+            </select>
+            <span class="adminForm__fieldError" data-form-error="type" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__check">
+              <input
+                class="adminForm__checkBox"
+                type="checkbox"
+                name="required"
+                checked={question.required}
+                data-form-input="required"
+              />
+              <span>Requerida</span>
+            </label>
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__check">
+              <input
+                class="adminForm__checkBox"
+                type="checkbox"
+                name="active"
+                checked={question.active}
+                data-form-input="active"
+              />
+              <span>Pregunta activa</span>
+            </label>
+          </div>
+
+          <div class="adminForm__actions">
+            <a class="adminForm__cancel" href={`/admin/quizzes/${id}`}>
+              Cancelar
+            </a>
+            <button
+              class="btn btn--primary adminForm__submit"
+              type="submit"
+              data-form-submit
+            >
+              <span data-form-submit-label>Guardar cambios</span>
+              <span class="btn__arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+          </div>
+        </form>
+      )
+    }
+  </section>
+</AdminLayout>
+
+<script>
+  type Issue = { path?: (string | number)[]; message?: string };
+
+  const form = document.querySelector<HTMLFormElement>(
+    "[data-form-edit-question]",
+  );
+  if (form) {
+    const quizId = form.dataset.quizId;
+    const questionId = form.dataset.questionId;
+    const alertBox = form.querySelector<HTMLDivElement>("[data-form-alert]");
+    const alertText = form.querySelector<HTMLSpanElement>(
+      "[data-form-alert-text]",
+    );
+    const submit = form.querySelector<HTMLButtonElement>("[data-form-submit]");
+    const submitLabel = form.querySelector<HTMLSpanElement>(
+      "[data-form-submit-label]",
+    );
+    const fieldErrors = form.querySelectorAll<HTMLSpanElement>(
+      "[data-form-error]",
+    );
+    const inputs = form.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >("[data-form-input]");
+
+    function clearErrors() {
+      if (alertBox) alertBox.hidden = true;
+      if (alertText) alertText.textContent = "";
+      fieldErrors.forEach((el) => {
+        el.textContent = "";
+        el.classList.remove("is-visible");
+      });
+      inputs.forEach((el) => el.classList.remove("has-error"));
+    }
+
+    function showAlert(message: string) {
+      if (!alertBox || !alertText) return;
+      alertText.textContent = message;
+      alertBox.hidden = false;
+    }
+
+    function showFieldError(field: string, message: string) {
+      const errorEl = form!.querySelector<HTMLSpanElement>(
+        `[data-form-error="${field}"]`,
+      );
+      const input = form!.querySelector<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >(`[data-form-input="${field}"]`);
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add("is-visible");
+      }
+      if (input) input.classList.add("has-error");
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!quizId || !questionId) return;
+      clearErrors();
+
+      const data = new FormData(form);
+      const positionNum = Number(String(data.get("position") ?? ""));
+      const payload = {
+        position: Number.isFinite(positionNum) ? positionNum : 0,
+        prompt: String(data.get("prompt") ?? "").trim(),
+        type: String(data.get("type") ?? "text"),
+        required: data.get("required") === "on",
+        active: data.get("active") === "on",
+      };
+
+      if (!submit || !submitLabel) return;
+      submit.disabled = true;
+      submitLabel.textContent = "Guardando…";
+
+      try {
+        const response = await fetch(
+          `/api/admin/quizzes/${quizId}/questions/${questionId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify(payload),
+          },
+        );
+
+        if (response.ok) {
+          window.location.href = `/admin/quizzes/${quizId}`;
+          return;
+        }
+
+        let body: { error?: string; issues?: Issue[] } = {};
+        try {
+          body = await response.json();
+        } catch {
+          // empty body
+        }
+
+        if (response.status === 401) {
+          window.location.href = "/admin/login";
+          return;
+        }
+        if (response.status === 403) {
+          window.location.href = "/admin/login?reason=forbidden";
+          return;
+        }
+        if (response.status === 404) {
+          showAlert("Esta pregunta ya no existe.");
+        } else if (
+          response.status === 400 &&
+          Array.isArray(body.issues) &&
+          body.issues.length > 0
+        ) {
+          body.issues.forEach((issue) => {
+            const path = issue.path?.[0];
+            if (typeof path === "string" && issue.message) {
+              showFieldError(path, issue.message);
+            }
+          });
+          showAlert("Revisá los datos del formulario.");
+        } else {
+          showAlert(body.error ?? "No pudimos guardar los cambios.");
+        }
+      } catch {
+        showAlert("Error de red. Verificá tu conexión.");
+      } finally {
+        submit.disabled = false;
+        submitLabel.textContent = "Guardar cambios";
+      }
+    });
+  }
+</script>
+
+<style>
+  .adminForm__input--textarea {
+    min-height: 88px;
+    resize: vertical;
+    padding-top: 0.6rem;
+    border-bottom-color: var(--color-line);
+    border: 1px solid var(--color-line);
+    padding: 0.6rem;
+  }
+
+  .adminForm__input--textarea:hover {
+    border-color: var(--color-primary-soft);
+  }
+
+  .adminForm__input--textarea:focus,
+  .adminForm__input--textarea:focus-visible {
+    border-color: var(--color-accent);
+    border-bottom-width: 2px;
+  }
+</style>

@@ -1,0 +1,199 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../admin/guard";
+import { adminFetch } from "../../admin/api";
+import { formatTimestamp } from "../../admin/format";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+interface AppQuiz {
+  id: string;
+  title: string;
+  description: string | null;
+  version: number;
+  active: boolean;
+  created_at: string;
+}
+
+interface QuizzesResponse {
+  quizzes: AppQuiz[];
+}
+
+const result = await adminFetch<QuizzesResponse>(Astro, "/api/admin/quizzes");
+const quizzes = result.ok ? result.data.quizzes : [];
+---
+
+<AdminLayout title="Quizzes · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <div class="adminPage__headRow">
+        <div class="adminPage__headTitles">
+          <span class="adminPage__eyebrow">02 / Quizzes</span>
+          <h1 class="adminPage__title">Quizzes</h1>
+        </div>
+        <a class="btn btn--primary" href="/admin/quizzes/new">
+          <span>Crear quiz</span>
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <p class="adminPage__lead">
+        Plantillas de quiz con sus preguntas asociadas. Hacé click en una fila
+        para ver el detalle; las preguntas se gestionan en la próxima fase.
+      </p>
+    </header>
+
+    {
+      !result.ok ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">Error</span>
+          <h2 class="adminState__title">No pudimos cargar los quizzes.</h2>
+          <p class="adminState__lead">
+            La API devolvió un error{" "}
+            {result.status > 0 ? `(${result.status})` : "de red"}. Reintentá la
+            carga.
+          </p>
+          <a class="adminState__retry" href="/admin/quizzes">
+            Reintentar →
+          </a>
+        </div>
+      ) : quizzes.length === 0 ? (
+        <div class="adminState">
+          <span class="adminState__tag">Vacío</span>
+          <h2 class="adminState__title">Sin quizzes cargados.</h2>
+          <p class="adminState__lead">
+            Cuando se creen, van a aparecer en esta tabla con su versión y
+            estado.
+          </p>
+        </div>
+      ) : (
+        <div class="adminTable__wrap">
+          <table class="adminTable">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th class="is-mono">Versión</th>
+                <th class="is-mono">Estado</th>
+                <th class="is-mono">Creado</th>
+                <th class="is-mono">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quizzes.map((q) => (
+                <tr class="adminTable__row--clickable" data-quiz-row data-quiz-id={q.id}>
+                  <td>{q.title}</td>
+                  <td class="is-muted">{q.description ?? "—"}</td>
+                  <td class="is-mono is-tight">v{q.version}</td>
+                  <td>
+                    <span
+                      class:list={[
+                        "badge",
+                        q.active ? "badge--ok" : "badge--off",
+                      ]}
+                    >
+                      {q.active ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td class="is-mono is-tight is-muted">
+                    {formatTimestamp(q.created_at)}
+                  </td>
+                  <td class="is-tight">
+                    <span class="adminTable__actions">
+                      <a
+                        class="adminTable__action"
+                        href={`/admin/quizzes/${q.id}/edit`}
+                      >
+                        Editar
+                      </a>
+                      {q.active && (
+                        <button
+                          type="button"
+                          class="adminTable__action adminTable__action--danger"
+                          data-deactivate-quiz={q.id}
+                          data-quiz-title={q.title}
+                        >
+                          Desactivar
+                        </button>
+                      )}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </section>
+</AdminLayout>
+
+<script>
+  const rows = document.querySelectorAll<HTMLTableRowElement>("[data-quiz-row]");
+  rows.forEach((row) => {
+    row.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("a, button, input, select, textarea, label")) return;
+      const id = row.dataset.quizId;
+      if (id) window.location.href = `/admin/quizzes/${id}`;
+    });
+  });
+
+  const deactivateButtons = document.querySelectorAll<HTMLButtonElement>(
+    "[data-deactivate-quiz]",
+  );
+
+  deactivateButtons.forEach((button) => {
+    button.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      const id = button.dataset.deactivateQuiz;
+      const title = button.dataset.quizTitle ?? "este quiz";
+      if (!id) return;
+
+      const confirmed = window.confirm(
+        `¿Desactivar el quiz "${title}"? Las preguntas se mantienen pero el quiz deja de estar disponible.`,
+      );
+      if (!confirmed) return;
+
+      button.disabled = true;
+      try {
+        const response = await fetch(`/api/admin/quizzes/${id}`, {
+          method: "DELETE",
+          credentials: "same-origin",
+        });
+
+        if (response.status === 401) {
+          window.location.href = "/admin/login";
+          return;
+        }
+        if (response.status === 403) {
+          window.location.href = "/admin/login?reason=forbidden";
+          return;
+        }
+        if (!response.ok) {
+          let message = "No pudimos desactivar el quiz.";
+          try {
+            const payload = await response.json();
+            if (payload?.error) message = payload.error;
+          } catch {
+            // empty body
+          }
+          window.alert(message);
+          button.disabled = false;
+          return;
+        }
+
+        window.location.reload();
+      } catch {
+        window.alert("Error de red. Intentá de nuevo.");
+        button.disabled = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  .adminTable__row--clickable {
+    cursor: pointer;
+  }
+</style>

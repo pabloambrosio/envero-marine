@@ -1,0 +1,445 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { createSupabaseServerClient } from "../../lib/supabase/server";
+
+const supabase = createSupabaseServerClient({
+  request: Astro.request,
+  cookies: Astro.cookies,
+});
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (user) {
+  const { data: appUser } = await supabase
+    .from("app_user")
+    .select("role, active")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (appUser && appUser.role === "admin" && appUser.active) {
+    return Astro.redirect("/admin");
+  }
+}
+
+const reason = Astro.url.searchParams.get("reason");
+const initialAlert =
+  reason === "forbidden"
+    ? "Tu usuario no tiene acceso al panel administrativo."
+    : null;
+---
+
+<Layout title="Acceso administrativo · Envero Marine" description="Panel administrativo Envero Marine">
+  <main class="login">
+    <div class="login__panel">
+      <header class="login__head">
+        <span class="login__brandTag">ENVERO MARINE</span>
+        <span class="login__brandSub">Admin</span>
+      </header>
+
+      <div class="login__intro">
+        <span class="login__eyebrow">01 / Acceso</span>
+        <h1 class="login__title">Acceso administrativo</h1>
+        <p class="login__lead">
+          Ingresá con tus credenciales de staff. El acceso queda registrado y limitado a
+          usuarios autorizados.
+        </p>
+      </div>
+
+      <form class="login__form" novalidate data-login-form>
+        <div class="login__alert" data-login-alert hidden={!initialAlert}>
+          <span class="login__alertTag" aria-hidden="true">ERROR</span>
+          <span class="login__alertText" data-login-alert-text>{initialAlert ?? ""}</span>
+        </div>
+
+        <div class="login__field">
+          <label class="login__label" for="login-email">
+            <span class="login__labelText">Email</span>
+            <span class="login__labelReq" aria-hidden="true">*</span>
+          </label>
+          <input
+            class="login__input"
+            type="email"
+            name="email"
+            id="login-email"
+            autocomplete="username"
+            required
+            data-login-input="email"
+          />
+          <span class="login__fieldError" data-login-error="email"></span>
+        </div>
+
+        <div class="login__field">
+          <label class="login__label" for="login-password">
+            <span class="login__labelText">Contraseña</span>
+            <span class="login__labelReq" aria-hidden="true">*</span>
+          </label>
+          <input
+            class="login__input"
+            type="password"
+            name="password"
+            id="login-password"
+            autocomplete="current-password"
+            required
+            data-login-input="password"
+          />
+          <span class="login__fieldError" data-login-error="password"></span>
+        </div>
+
+        <div class="login__foot">
+          <span class="login__note">Sesión protegida · cookies HttpOnly</span>
+          <button class="btn btn--primary login__submit" type="submit" data-login-submit>
+            <span data-login-submit-label>Entrar</span>
+            <span class="btn__arrow" aria-hidden="true">→</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  type Issue = { path?: (string | number)[]; message?: string };
+
+  const form = document.querySelector<HTMLFormElement>("[data-login-form]");
+  const alertBox = document.querySelector<HTMLDivElement>("[data-login-alert]");
+  const alertText = document.querySelector<HTMLSpanElement>("[data-login-alert-text]");
+  const submit = document.querySelector<HTMLButtonElement>("[data-login-submit]");
+  const submitLabel = document.querySelector<HTMLSpanElement>("[data-login-submit-label]");
+  const fieldErrors = document.querySelectorAll<HTMLSpanElement>("[data-login-error]");
+  const inputs = document.querySelectorAll<HTMLInputElement>("[data-login-input]");
+
+  function clearErrors() {
+    if (alertBox) alertBox.hidden = true;
+    if (alertText) alertText.textContent = "";
+    fieldErrors.forEach((el) => {
+      el.textContent = "";
+      el.classList.remove("is-visible");
+    });
+    inputs.forEach((el) => el.classList.remove("has-error"));
+  }
+
+  function showAlert(message: string) {
+    if (!alertBox || !alertText) return;
+    alertText.textContent = message;
+    alertBox.hidden = false;
+  }
+
+  function showFieldError(field: string, message: string) {
+    const errorEl = document.querySelector<HTMLSpanElement>(`[data-login-error="${field}"]`);
+    const input = document.querySelector<HTMLInputElement>(`[data-login-input="${field}"]`);
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.add("is-visible");
+    }
+    if (input) input.classList.add("has-error");
+  }
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearErrors();
+
+    const email = (document.querySelector<HTMLInputElement>('[data-login-input="email"]')?.value ?? "").trim();
+    const password = document.querySelector<HTMLInputElement>('[data-login-input="password"]')?.value ?? "";
+
+    if (!submit || !submitLabel) return;
+    submit.disabled = true;
+    submitLabel.textContent = "Verificando…";
+
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        window.location.href = "/admin";
+        return;
+      }
+
+      let payload: { error?: string; issues?: Issue[] } = {};
+      try {
+        payload = await response.json();
+      } catch {
+        // empty body
+      }
+
+      if (response.status === 400 && Array.isArray(payload.issues) && payload.issues.length > 0) {
+        payload.issues.forEach((issue) => {
+          const path = issue.path?.[0];
+          if (typeof path === "string" && issue.message) {
+            showFieldError(path, issue.message);
+          }
+        });
+        showAlert("Revisá los datos del formulario.");
+      } else if (response.status === 401) {
+        showAlert("Credenciales inválidas.");
+      } else if (response.status === 403) {
+        showAlert("Tu usuario no tiene acceso al panel administrativo.");
+      } else {
+        showAlert(payload.error ?? "No pudimos procesar el ingreso. Probá de nuevo.");
+      }
+    } catch {
+      showAlert("Error de red. Verificá tu conexión.");
+    } finally {
+      submit.disabled = false;
+      submitLabel.textContent = "Entrar";
+    }
+  });
+</script>
+
+<style>
+  .login {
+    min-height: 100vh;
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    display: grid;
+    place-items: center;
+    padding: var(--space-7) var(--space-5);
+  }
+
+  .login__panel {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-line);
+    padding: var(--space-7) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .login__panel::before,
+  .login__panel::after {
+    content: "+";
+    position: absolute;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1;
+    color: var(--color-line);
+    pointer-events: none;
+  }
+
+  .login__panel::before {
+    top: 8px;
+    left: 8px;
+  }
+
+  .login__panel::after {
+    bottom: 8px;
+    right: 8px;
+  }
+
+  .login__head {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .login__brandTag {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+  }
+
+  .login__brandSub {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .login__intro {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .login__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .login__title {
+    margin: 0;
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+
+  .login__lead {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.55;
+    color: var(--color-ink-muted);
+  }
+
+  .login__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .login__alert {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-left: 2px solid var(--color-accent);
+    background-color: rgba(217, 132, 42, 0.06);
+  }
+
+  .login__alert[hidden] {
+    display: none;
+  }
+
+  .login__alertTag {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .login__alertText {
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--color-ink);
+  }
+
+  .login__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .login__label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .login__labelText {
+    color: var(--color-ink);
+  }
+
+  .login__labelReq {
+    color: var(--color-accent);
+  }
+
+  .login__input {
+    width: 100%;
+    padding: 0.6rem 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    font-family: var(--font-sans);
+    font-size: var(--fs-md);
+    line-height: 1.4;
+    color: var(--color-ink);
+    transition: border-color 200ms var(--ease-out);
+    outline: none;
+    border-radius: 0;
+  }
+
+  .login__input:hover {
+    border-bottom-color: var(--color-primary-soft);
+  }
+
+  .login__input:focus,
+  .login__input:focus-visible {
+    border-bottom-color: var(--color-accent);
+    border-bottom-width: 2px;
+    padding-bottom: calc(0.6rem - 1px);
+  }
+
+  .login__input.has-error {
+    border-bottom-color: var(--color-accent);
+  }
+
+  .login__fieldError {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .login__fieldError.is-visible {
+    display: inline-block;
+  }
+
+  .login__foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-line);
+    flex-wrap: wrap;
+  }
+
+  .login__note {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .login__submit {
+    flex: 0 0 auto;
+  }
+
+  .login__submit:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  @media (max-width: 480px) {
+    .login {
+      padding: var(--space-5) var(--space-4);
+    }
+
+    .login__panel {
+      padding: var(--space-6) var(--space-4);
+    }
+
+    .login__title {
+      font-size: var(--fs-xl);
+    }
+
+    .login__foot {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .login__submit {
+      justify-content: space-between;
+    }
+  }
+</style>

@@ -1,0 +1,179 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../admin/guard";
+import { adminFetch } from "../../admin/api";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+interface UsersListResponse {
+  users: { id: string }[];
+}
+interface QuizzesListResponse {
+  quizzes: { id: string }[];
+}
+interface AppointmentsListResponse {
+  appointments: { id: string }[];
+}
+
+const [usersResult, quizzesResult, appointmentsResult] = await Promise.all([
+  adminFetch<UsersListResponse>(Astro, "/api/admin/users"),
+  adminFetch<QuizzesListResponse>(Astro, "/api/admin/quizzes"),
+  adminFetch<AppointmentsListResponse>(Astro, "/api/admin/appointments"),
+]);
+
+const cards = [
+  {
+    eyebrow: "01 / Usuarios",
+    label: "Staff registrado",
+    href: "/admin/users",
+    count: usersResult.ok ? usersResult.data.users.length : null,
+    failed: !usersResult.ok,
+  },
+  {
+    eyebrow: "02 / Quizzes",
+    label: "Plantillas activas e históricas",
+    href: "/admin/quizzes",
+    count: quizzesResult.ok ? quizzesResult.data.quizzes.length : null,
+    failed: !quizzesResult.ok,
+  },
+  {
+    eyebrow: "03 / Citas",
+    label: "Solicitudes y agenda",
+    href: "/admin/appointments",
+    count: appointmentsResult.ok
+      ? appointmentsResult.data.appointments.length
+      : null,
+    failed: !appointmentsResult.ok,
+  },
+];
+---
+
+<AdminLayout title="Inicio · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <span class="adminPage__eyebrow">00 / Inicio</span>
+      <h1 class="adminPage__title">Bienvenido, {guard.admin.name}.</h1>
+      <p class="adminPage__lead">
+        Resumen del estado actual del sistema. Cada tarjeta linkea a la sección
+        correspondiente.
+      </p>
+    </header>
+
+    <div class="dash">
+      {
+        cards.map((card) => (
+          <a class="dash__card" href={card.href}>
+            <span class="dash__eyebrow">{card.eyebrow}</span>
+            <span class="dash__count">
+              {card.failed ? "—" : card.count}
+            </span>
+            <span class="dash__label">{card.label}</span>
+            <span class="dash__foot">
+              {card.failed ? (
+                <span class="dash__footError">No disponible</span>
+              ) : (
+                <span class="dash__footLink">
+                  Ver
+                  <span class="dash__arrow" aria-hidden="true">→</span>
+                </span>
+              )}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</AdminLayout>
+
+<style>
+  .dash {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background-color: var(--color-line);
+    border: 1px solid var(--color-line);
+  }
+
+  .dash__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    transition: background-color 0.2s var(--ease-out);
+  }
+
+  .dash__card:hover {
+    background-color: rgba(217, 132, 42, 0.04);
+  }
+
+  .dash__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .dash__count {
+    font-family: var(--font-sans);
+    font-size: var(--fs-3xl);
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--color-ink);
+  }
+
+  .dash__label {
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--color-ink-muted);
+  }
+
+  .dash__foot {
+    margin-top: auto;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-line);
+    display: flex;
+    align-items: center;
+  }
+
+  .dash__footLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+  }
+
+  .dash__arrow {
+    display: inline-block;
+    transition: transform 0.2s var(--ease-out);
+  }
+
+  .dash__card:hover .dash__arrow {
+    transform: translateX(3px);
+  }
+
+  .dash__footError {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 768px) {
+    .dash {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

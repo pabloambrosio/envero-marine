@@ -28,3 +28,4 @@ pnpm-debug.log*
 # local notes for Claude Code
 CLAUDE.md
 .claude/
+memory/

@@ -1,0 +1,229 @@
+---
+import AdminLayout from "../../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../../admin/guard";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+---
+
+<AdminLayout title="Nuevo usuario · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <span class="adminPage__eyebrow">01 / Usuarios · Nuevo</span>
+      <h1 class="adminPage__title">Crear usuario</h1>
+      <p class="adminPage__lead">
+        Alta de un nuevo miembro de staff. La contraseña inicial debe tener al
+        menos 8 caracteres; el usuario podrá cambiarla después.
+      </p>
+    </header>
+
+    <form class="adminForm" novalidate data-form-create-user>
+      <div class="adminForm__alert" data-form-alert hidden>
+        <span class="adminForm__alertTag" aria-hidden="true">ERROR</span>
+        <span class="adminForm__alertText" data-form-alert-text></span>
+      </div>
+
+      <div class="adminForm__field">
+        <label class="adminForm__label" for="user-name">
+          <span class="adminForm__labelText">Nombre</span>
+          <span class="adminForm__labelReq" aria-hidden="true">*</span>
+        </label>
+        <input
+          class="adminForm__input"
+          type="text"
+          name="name"
+          id="user-name"
+          autocomplete="name"
+          required
+          data-form-input="name"
+        />
+        <span class="adminForm__fieldError" data-form-error="name"></span>
+      </div>
+
+      <div class="adminForm__field">
+        <label class="adminForm__label" for="user-email">
+          <span class="adminForm__labelText">Email</span>
+          <span class="adminForm__labelReq" aria-hidden="true">*</span>
+        </label>
+        <input
+          class="adminForm__input"
+          type="email"
+          name="email"
+          id="user-email"
+          autocomplete="email"
+          required
+          data-form-input="email"
+        />
+        <span class="adminForm__fieldError" data-form-error="email"></span>
+      </div>
+
+      <div class="adminForm__field">
+        <label class="adminForm__label" for="user-password">
+          <span class="adminForm__labelText">Contraseña</span>
+          <span class="adminForm__labelReq" aria-hidden="true">*</span>
+          <span class="adminForm__hint">Mín. 8 caracteres</span>
+        </label>
+        <input
+          class="adminForm__input"
+          type="password"
+          name="password"
+          id="user-password"
+          autocomplete="new-password"
+          required
+          minlength="8"
+          data-form-input="password"
+        />
+        <span class="adminForm__fieldError" data-form-error="password"></span>
+      </div>
+
+      <div class="adminForm__field">
+        <label class="adminForm__label" for="user-role">
+          <span class="adminForm__labelText">Rol</span>
+          <span class="adminForm__labelReq" aria-hidden="true">*</span>
+        </label>
+        <select
+          class="adminForm__select"
+          name="role"
+          id="user-role"
+          required
+          data-form-input="role"
+        >
+          <option value="vendor">Vendor</option>
+          <option value="admin">Admin</option>
+        </select>
+        <span class="adminForm__fieldError" data-form-error="role"></span>
+      </div>
+
+      <div class="adminForm__actions">
+        <a class="adminForm__cancel" href="/admin/users">Cancelar</a>
+        <button
+          class="btn btn--primary adminForm__submit"
+          type="submit"
+          data-form-submit
+        >
+          <span data-form-submit-label>Crear usuario</span>
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </form>
+  </section>
+</AdminLayout>
+
+<script>
+  type Issue = { path?: (string | number)[]; message?: string };
+
+  const form = document.querySelector<HTMLFormElement>(
+    "[data-form-create-user]",
+  );
+  const alertBox = document.querySelector<HTMLDivElement>("[data-form-alert]");
+  const alertText = document.querySelector<HTMLSpanElement>(
+    "[data-form-alert-text]",
+  );
+  const submit = document.querySelector<HTMLButtonElement>("[data-form-submit]");
+  const submitLabel = document.querySelector<HTMLSpanElement>(
+    "[data-form-submit-label]",
+  );
+  const fieldErrors = document.querySelectorAll<HTMLSpanElement>(
+    "[data-form-error]",
+  );
+  const inputs = document.querySelectorAll<
+    HTMLInputElement | HTMLSelectElement
+  >("[data-form-input]");
+
+  function clearErrors() {
+    if (alertBox) alertBox.hidden = true;
+    if (alertText) alertText.textContent = "";
+    fieldErrors.forEach((el) => {
+      el.textContent = "";
+      el.classList.remove("is-visible");
+    });
+    inputs.forEach((el) => el.classList.remove("has-error"));
+  }
+
+  function showAlert(message: string) {
+    if (!alertBox || !alertText) return;
+    alertText.textContent = message;
+    alertBox.hidden = false;
+  }
+
+  function showFieldError(field: string, message: string) {
+    const errorEl = document.querySelector<HTMLSpanElement>(
+      `[data-form-error="${field}"]`,
+    );
+    const input = document.querySelector<HTMLInputElement | HTMLSelectElement>(
+      `[data-form-input="${field}"]`,
+    );
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.add("is-visible");
+    }
+    if (input) input.classList.add("has-error");
+  }
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearErrors();
+
+    const data = new FormData(form);
+    const payload = {
+      name: String(data.get("name") ?? "").trim(),
+      email: String(data.get("email") ?? "").trim(),
+      password: String(data.get("password") ?? ""),
+      role: String(data.get("role") ?? ""),
+    };
+
+    if (!submit || !submitLabel) return;
+    submit.disabled = true;
+    submitLabel.textContent = "Creando…";
+
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+      });
+
+      if (response.status === 201 || response.ok) {
+        window.location.href = "/admin/users";
+        return;
+      }
+
+      let body: { error?: string; issues?: Issue[] } = {};
+      try {
+        body = await response.json();
+      } catch {
+        // empty body
+      }
+
+      if (response.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+      if (response.status === 403) {
+        window.location.href = "/admin/login?reason=forbidden";
+        return;
+      }
+      if (
+        response.status === 400 &&
+        Array.isArray(body.issues) &&
+        body.issues.length > 0
+      ) {
+        body.issues.forEach((issue) => {
+          const path = issue.path?.[0];
+          if (typeof path === "string" && issue.message) {
+            showFieldError(path, issue.message);
+          }
+        });
+        showAlert("Revisá los datos del formulario.");
+      } else {
+        showAlert(body.error ?? "No pudimos crear el usuario.");
+      }
+    } catch {
+      showAlert("Error de red. Verificá tu conexión.");
+    } finally {
+      submit.disabled = false;
+      submitLabel.textContent = "Crear usuario";
+    }
+  });
+</script>
