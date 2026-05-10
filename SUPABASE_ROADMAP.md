@@ -125,12 +125,18 @@ Endpoints sin body (logout, etc.) saltean el `validateBody` y van directo a comp
 - [x] `prerender = true` en homes públicos ([`src/pages/index.astro`](src/pages/index.astro), [`src/pages/en/index.astro`](src/pages/en/index.astro)) — agregar al resto de páginas marketing cuando se sumen
 - [x] Cliente server-side ([`src/lib/supabase/server.ts`](src/lib/supabase/server.ts)) con `@supabase/ssr` + cookies de Astro
 - [x] Cliente service-role server-only ([`src/lib/supabase/admin.ts`](src/lib/supabase/admin.ts))
-- [x] Middleware de Astro ([`src/middleware.ts`](src/middleware.ts)) que protege `/admin/*`, `/api/admin/*`, `/vendors/*`, `/api/vendors/*` + admin-only gate sobre `/api/admin/users`
+- [x] Middleware de Astro ([`src/middleware.ts`](src/middleware.ts)) que protege `/admin/*`, `/api/admin/*`, `/vendors/*`, `/api/vendors/*` + admin-only gate sobre `/api/admin/users`, `/api/admin/quizzes`, `/api/admin/appointments`, `/api/admin/clients`
 - [x] Endpoint `POST /api/admin/login` con Zod validation ([`src/pages/api/admin/login.ts`](src/pages/api/admin/login.ts))
 - [x] Endpoint `POST /api/admin/logout` ([`src/pages/api/admin/logout.ts`](src/pages/api/admin/logout.ts))
 - [x] CRUD admin de staff: `/api/admin/users` (GET list, POST create) + `/api/admin/users/[id]` (GET, PATCH, DELETE soft via `active=false`). Módulo en [`src/modules/users/`](src/modules/users/) con types Zod + 5 servicios separados por operación.
-- [ ] Página `/admin/login` (UI del form que postea al endpoint)
+- [x] CRUD admin de quizzes: `/api/admin/quizzes` (GET list, POST create) + `/api/admin/quizzes/[id]` (GET, PATCH, DELETE soft). Módulo en [`src/modules/quiz/`](src/modules/quiz/).
+- [x] CRUD admin de preguntas: `/api/admin/quizzes/[id]/questions` (GET list, POST create) + `/api/admin/quizzes/[id]/questions/[qid]` (GET, PATCH, DELETE soft) + `PATCH /reorder` atómico vía RPC plpgsql. Tipos cerrados a 3: `single_choice`, `multiple_choice`, `open_text`, con `options[]` y `allow_other` como columnas de primera clase.
+- [x] CRUD admin de citas: `/api/admin/appointments` (GET list, POST create) + `/api/admin/appointments/[id]` (GET, PATCH). No hay DELETE — cancelar = `PATCH { status: "cancelled" }`. Módulo en [`src/modules/appointment/`](src/modules/appointment/).
+- [x] Módulo `client` (lead/CRM): `/api/admin/clients` (POST create) — tabla deliberadamente laxa, sin uniques, indexada en `email`/`phone`/`company_name`/`name`/`created_at`. Anon insert habilitado vía RLS para el flujo público anónimo (futuro).
+- [x] Frontend admin completo bajo `/admin/*`: login + dashboard read-only con conteos, CRUDs de usuarios/quizzes/preguntas (drag&drop reorder con HTML5 nativo + rollback optimista)/citas (alta manual con orquestación cliente→cita en dos llamadas). Layout con sidebar persistente. Helpers en [`src/admin/`](src/admin/) (`guard.ts`, `api.ts`, `format.ts`). Estilos compartidos en [`src/styles/admin.css`](src/styles/admin.css).
 - [ ] Tipos TS generados (`yarn supabase gen types typescript --local > src/lib/supabase/database.types.ts`)
+- [ ] Endpoint público `POST /api/appointments` (anon) que orqueste cliente + cita para el flujo del quiz público
+- [ ] Endpoint `GET /api/admin/clients/[id]` y/o list, si en algún momento queremos navegar leads desde el admin
 - [ ] Env vars de prod en Cloudflare Workers Secrets (URL, publishable, secret) — jamás commit
 
 ## Pre-prod checklist

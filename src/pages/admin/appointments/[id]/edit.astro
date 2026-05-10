@@ -1,0 +1,398 @@
+---
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../../../admin/guard";
+import { adminFetch } from "../../../../admin/api";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect("/admin/appointments");
+
+type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
+
+interface AppAppointment {
+  id: string;
+  vendor_id: string | null;
+  appointment_date: string;
+  status: AppointmentStatus;
+  notes: string | null;
+}
+
+interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  active: boolean;
+}
+
+interface AppointmentResponse {
+  appointment: AppAppointment;
+}
+interface UsersResponse {
+  users: AppUser[];
+}
+
+const [appointmentResult, usersResult] = await Promise.all([
+  adminFetch<AppointmentResponse>(Astro, `/api/admin/appointments/${id}`),
+  adminFetch<UsersResponse>(Astro, "/api/admin/users"),
+]);
+
+const isNotFound =
+  !appointmentResult.ok && appointmentResult.status === 404;
+const appointment = appointmentResult.ok
+  ? appointmentResult.data.appointment
+  : null;
+
+const vendors = usersResult.ok
+  ? usersResult.data.users.filter((u) => u.role === "vendor" && u.active)
+  : [];
+
+// datetime-local expects "YYYY-MM-DDTHH:MM" — strip seconds + timezone
+function toDatetimeLocal(value: string | null | undefined): string {
+  if (!value) return "";
+  return value.length >= 16 ? value.slice(0, 16) : value;
+}
+
+const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : "";
+---
+
+<AdminLayout title="Editar cita · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <span class="adminPage__eyebrow">03 / Citas · Editar</span>
+      <h1 class="adminPage__title">Editar cita</h1>
+      <p class="adminPage__lead">
+        Cambiá el estado, asigná o desasigná un vendor, ajustá la fecha o las
+        notas. Para cancelar la cita, cambiá el estado a "Cancelada".
+      </p>
+    </header>
+
+    {
+      isNotFound ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">No encontrada</span>
+          <h2 class="adminState__title">Cita no encontrada.</h2>
+          <p class="adminState__lead">
+            Puede haber sido borrada o el ID es incorrecto.
+          </p>
+          <a class="adminState__retry" href="/admin/appointments">
+            Volver a la lista →
+          </a>
+        </div>
+      ) : !appointmentResult.ok || !appointment ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">Error</span>
+          <h2 class="adminState__title">No pudimos cargar la cita.</h2>
+          <p class="adminState__lead">
+            La API devolvió un error
+            {appointmentResult.ok === false && appointmentResult.status > 0
+              ? ` (${appointmentResult.status})`
+              : " de red"}
+            . Reintentá la carga.
+          </p>
+          <a
+            class="adminState__retry"
+            href={`/admin/appointments/${id}/edit`}
+          >
+            Reintentar →
+          </a>
+        </div>
+      ) : (
+        <form
+          class="adminForm"
+          novalidate
+          data-form-edit-appointment
+          data-appointment-id={appointment.id}
+        >
+          <div class="adminForm__alert" data-form-alert hidden>
+            <span class="adminForm__alertTag" aria-hidden="true">
+              ERROR
+            </span>
+            <span class="adminForm__alertText" data-form-alert-text />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="appointment-status">
+              <span class="adminForm__labelText">Estado</span>
+              <span class="adminForm__labelReq" aria-hidden="true">
+                *
+              </span>
+            </label>
+            <select
+              class="adminForm__select"
+              name="status"
+              id="appointment-status"
+              required
+              data-form-input="status"
+            >
+              <option
+                value="pending"
+                selected={appointment.status === "pending"}
+              >
+                Pendiente
+              </option>
+              <option
+                value="confirmed"
+                selected={appointment.status === "confirmed"}
+              >
+                Confirmada
+              </option>
+              <option
+                value="completed"
+                selected={appointment.status === "completed"}
+              >
+                Completada
+              </option>
+              <option
+                value="cancelled"
+                selected={appointment.status === "cancelled"}
+              >
+                Cancelada
+              </option>
+            </select>
+            <span class="adminForm__fieldError" data-form-error="status" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="appointment-vendor">
+              <span class="adminForm__labelText">Vendor</span>
+              <span class="adminForm__hint">
+                {vendors.length === 0
+                  ? "No hay vendors activos"
+                  : "Solo se listan vendors activos"}
+              </span>
+            </label>
+            <select
+              class="adminForm__select"
+              name="vendor_id"
+              id="appointment-vendor"
+              data-form-input="vendor_id"
+            >
+              <option value="" selected={!appointment.vendor_id}>
+                Sin asignar
+              </option>
+              {vendors.map((v) => (
+                <option
+                  value={v.id}
+                  selected={appointment.vendor_id === v.id}
+                >
+                  {v.name} · {v.email}
+                </option>
+              ))}
+            </select>
+            <span class="adminForm__fieldError" data-form-error="vendor_id" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="appointment-date">
+              <span class="adminForm__labelText">Fecha cita</span>
+              <span class="adminForm__labelReq" aria-hidden="true">
+                *
+              </span>
+            </label>
+            <input
+              class="adminForm__input"
+              type="datetime-local"
+              name="appointment_date"
+              id="appointment-date"
+              required
+              value={dateValue}
+              data-form-input="appointment_date"
+            />
+            <span
+              class="adminForm__fieldError"
+              data-form-error="appointment_date"
+            />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="appointment-notes">
+              <span class="adminForm__labelText">Notas</span>
+              <span class="adminForm__hint">Opcional</span>
+            </label>
+            <textarea
+              class="adminForm__input adminForm__input--textarea"
+              name="notes"
+              id="appointment-notes"
+              rows="3"
+              data-form-input="notes">{appointment.notes ?? ""}</textarea>
+            <span class="adminForm__fieldError" data-form-error="notes" />
+          </div>
+
+          <div class="adminForm__actions">
+            <a
+              class="adminForm__cancel"
+              href={`/admin/appointments/${appointment.id}`}
+            >
+              Cancelar
+            </a>
+            <button
+              class="btn btn--primary adminForm__submit"
+              type="submit"
+              data-form-submit
+            >
+              <span data-form-submit-label>Guardar cambios</span>
+              <span class="btn__arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+          </div>
+        </form>
+      )
+    }
+  </section>
+</AdminLayout>
+
+<script>
+  type Issue = { path?: (string | number)[]; message?: string };
+
+  const form = document.querySelector<HTMLFormElement>(
+    "[data-form-edit-appointment]",
+  );
+  if (form) {
+    const appointmentId = form.dataset.appointmentId;
+    const alertBox = form.querySelector<HTMLDivElement>("[data-form-alert]");
+    const alertText = form.querySelector<HTMLSpanElement>(
+      "[data-form-alert-text]",
+    );
+    const submit = form.querySelector<HTMLButtonElement>("[data-form-submit]");
+    const submitLabel = form.querySelector<HTMLSpanElement>(
+      "[data-form-submit-label]",
+    );
+    const fieldErrors = form.querySelectorAll<HTMLSpanElement>(
+      "[data-form-error]",
+    );
+    const inputs = form.querySelectorAll<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >("[data-form-input]");
+
+    function clearErrors() {
+      if (alertBox) alertBox.hidden = true;
+      if (alertText) alertText.textContent = "";
+      fieldErrors.forEach((el) => {
+        el.textContent = "";
+        el.classList.remove("is-visible");
+      });
+      inputs.forEach((el) => el.classList.remove("has-error"));
+    }
+
+    function showAlert(message: string) {
+      if (!alertBox || !alertText) return;
+      alertText.textContent = message;
+      alertBox.hidden = false;
+    }
+
+    function showFieldError(field: string, message: string) {
+      const errorEl = form!.querySelector<HTMLSpanElement>(
+        `[data-form-error="${field}"]`,
+      );
+      const input = form!.querySelector<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >(`[data-form-input="${field}"]`);
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add("is-visible");
+      }
+      if (input) input.classList.add("has-error");
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!appointmentId) return;
+      clearErrors();
+
+      const data = new FormData(form);
+      const vendorRaw = String(data.get("vendor_id") ?? "");
+      const notesRaw = String(data.get("notes") ?? "").trim();
+
+      const payload = {
+        status: String(data.get("status") ?? "pending"),
+        vendor_id: vendorRaw === "" ? null : vendorRaw,
+        appointment_date: String(data.get("appointment_date") ?? ""),
+        notes: notesRaw === "" ? null : notesRaw,
+      };
+
+      if (!submit || !submitLabel) return;
+      submit.disabled = true;
+      submitLabel.textContent = "Guardando…";
+
+      try {
+        const response = await fetch(
+          `/api/admin/appointments/${appointmentId}`,
+          {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify(payload),
+          },
+        );
+
+        if (response.ok) {
+          window.location.href = `/admin/appointments/${appointmentId}`;
+          return;
+        }
+
+        let body: { error?: string; issues?: Issue[] } = {};
+        try {
+          body = await response.json();
+        } catch {
+          // empty body
+        }
+
+        if (response.status === 401) {
+          window.location.href = "/admin/login";
+          return;
+        }
+        if (response.status === 403) {
+          window.location.href = "/admin/login?reason=forbidden";
+          return;
+        }
+        if (response.status === 404) {
+          showAlert("Esta cita ya no existe.");
+        } else if (
+          response.status === 400 &&
+          Array.isArray(body.issues) &&
+          body.issues.length > 0
+        ) {
+          body.issues.forEach((issue) => {
+            const path = issue.path?.[0];
+            if (typeof path === "string" && issue.message) {
+              showFieldError(path, issue.message);
+            }
+          });
+          showAlert("Revisá los datos del formulario.");
+        } else {
+          showAlert(body.error ?? "No pudimos guardar los cambios.");
+        }
+      } catch {
+        showAlert("Error de red. Verificá tu conexión.");
+      } finally {
+        submit.disabled = false;
+        submitLabel.textContent = "Guardar cambios";
+      }
+    });
+  }
+</script>
+
+<style>
+  .adminForm__input--textarea {
+    min-height: 88px;
+    resize: vertical;
+    padding-top: 0.6rem;
+    border-bottom-color: var(--color-line);
+    border: 1px solid var(--color-line);
+    padding: 0.6rem;
+  }
+
+  .adminForm__input--textarea:hover {
+    border-color: var(--color-primary-soft);
+  }
+
+  .adminForm__input--textarea:focus,
+  .adminForm__input--textarea:focus-visible {
+    border-color: var(--color-accent);
+    border-bottom-width: 2px;
+  }
+</style>

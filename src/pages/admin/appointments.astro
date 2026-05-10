@@ -46,11 +46,19 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
 <AdminLayout title="Citas · Admin">
   <section class="adminPage">
     <header class="adminPage__head">
-      <span class="adminPage__eyebrow">03 / Citas</span>
-      <h1 class="adminPage__title">Citas</h1>
+      <div class="adminPage__headRow">
+        <div class="adminPage__headTitles">
+          <span class="adminPage__eyebrow">03 / Citas</span>
+          <h1 class="adminPage__title">Citas</h1>
+        </div>
+        <a class="btn btn--primary" href="/admin/appointments/new">
+          <span>Nueva cita</span>
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
       <p class="adminPage__lead">
-        Solicitudes y citas confirmadas. La gestión (cambiar estado, asignar
-        vendor) llega en una fase posterior.
+        Solicitudes y citas confirmadas. Hacé click en una fila para ver el
+        detalle y editar; las cancelaciones se manejan cambiando el estado.
       </p>
     </header>
 
@@ -91,7 +99,11 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
             </thead>
             <tbody>
               {appointments.map((a) => (
-                <tr>
+                <tr
+                  class="adminTable__row--clickable"
+                  data-appointment-row
+                  data-appointment-id={a.id}
+                >
                   <td class="is-mono is-tight">
                     {formatTimestamp(a.appointment_date)}
                   </td>
@@ -118,3 +130,23 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
     }
   </section>
 </AdminLayout>
+
+<script>
+  const rows = document.querySelectorAll<HTMLTableRowElement>(
+    "[data-appointment-row]",
+  );
+  rows.forEach((row) => {
+    row.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("a, button, input, select, textarea, label")) return;
+      const id = row.dataset.appointmentId;
+      if (id) window.location.href = `/admin/appointments/${id}`;
+    });
+  });
+</script>
+
+<style>
+  .adminTable__row--clickable {
+    cursor: pointer;
+  }
+</style>

@@ -22,6 +22,7 @@ const ADMIN_ONLY_PREFIXES = [
   "/api/admin/users",
   "/api/admin/quizzes",
   "/api/admin/appointments",
+  "/api/admin/clients",
 ];
 
 function isProtected(pathname: string): boolean {
