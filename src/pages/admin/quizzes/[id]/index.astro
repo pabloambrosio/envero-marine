@@ -20,12 +20,16 @@ interface AppQuiz {
   updated_at: string;
 }
 
+type QuestionType = "single_choice" | "multiple_choice" | "open_text";
+
 interface AppQuestion {
   id: string;
   quiz_id: string;
   position: number;
   prompt: string;
-  type: string;
+  type: QuestionType;
+  options: string[];
+  allow_other: boolean;
   required: boolean;
   active: boolean;
 }
@@ -46,6 +50,18 @@ const isNotFound = !quizResult.ok && quizResult.status === 404;
 const quiz = quizResult.ok ? quizResult.data.quiz : null;
 const questions = questionsResult.ok ? questionsResult.data.questions : [];
 const questionsFailed = !questionsResult.ok;
+
+const TYPE_LABELS: Record<QuestionType, string> = {
+  single_choice: "Opción única",
+  multiple_choice: "Opción múltiple",
+  open_text: "Abierta",
+};
+
+function questionMeta(q: AppQuestion): string {
+  if (q.type === "open_text") return "Respuesta libre";
+  const count = `${q.options.length} ${q.options.length === 1 ? "opción" : "opciones"}`;
+  return q.allow_other ? `${count} · permite otra` : `${count} · cerrada`;
+}
 ---
 
 <AdminLayout title={quiz ? `${quiz.title} · Admin` : "Quiz · Admin"}>
@@ -225,9 +241,18 @@ const questionsFailed = !questionsResult.ok;
                           >
                             {q.position}
                           </td>
-                          <td>{q.prompt}</td>
+                          <td>
+                            <div class="questionCell">
+                              <span class="questionCell__prompt">
+                                {q.prompt}
+                              </span>
+                              <span class="questionCell__meta">
+                                {questionMeta(q)}
+                              </span>
+                            </div>
+                          </td>
                           <td class="is-mono is-tight">
-                            {q.type.toUpperCase()}
+                            {TYPE_LABELS[q.type]}
                           </td>
                           <td>
                             <span
@@ -582,6 +607,28 @@ const questionsFailed = !questionsResult.ok;
     line-height: 1.05;
     letter-spacing: -0.02em;
     color: var(--color-ink);
+  }
+
+  .questionCell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .questionCell__prompt {
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+    color: var(--color-ink);
+  }
+
+  .questionCell__meta {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
   }
 
   @media (max-width: 640px) {

@@ -28,7 +28,7 @@ Seis tablas en `public`. Migración inicial: [`supabase/migrations/2026050717321
 | `app_user` | Staff interno (admin/vendor). | PK = FK a `auth.users(id)` con `on delete cascade`. `role` con check (`admin`/`vendor`). Renombrada de `user` por palabra reservada. |
 | `client` | Leads / visitantes. Sin auth. | Datos del form de contacto / quiz. |
 | `quiz` | Plantillas de quiz. | Metadata + versión + `active`. Preguntas viven aparte. |
-| `quiz_question` | Preguntas de un quiz. | `position int` ordena el quiz en el front (`ORDER BY position`). Tiene `type`, `config jsonb`, `required`, `active`. |
+| `quiz_question` | Preguntas de un quiz. | `position int` ordena el quiz en el front (`ORDER BY position`). `type` es enum cerrado (`single_choice`/`multiple_choice`/`open_text`), `options text[]` lista las respuestas predefinidas, `allow_other bool` habilita el campo de respuesta abierta extra. CHECK cruzado fuerza la consistencia (open_text sin opciones, choice con ≥2). |
 | `appointment` | Citas y solicitudes de cita. | `status pending/confirmed/cancelled/completed`. La "solicitud" es un appointment con `status='pending'`. `quiz_snapshot jsonb` guarda preguntas + respuestas inmutables al momento de pedir. |
 | `message` | Formulario de contacto. | `handled_by` apunta al admin que respondió. |
 
@@ -38,6 +38,7 @@ Trigger `set_updated_at` aplicado a `app_user`, `quiz`, `quiz_question`, `appoin
 
 - **Tabla `app_user`** (no `user`), FK a `auth.users(id)`. Evita la palabra reservada y queda lista para Supabase Auth.
 - **Quiz preguntas como tabla separada** (no jsonb dentro de `quiz`). Más limpio para reordenar/desactivar individualmente.
+- **Tres tipos de pregunta cerrados** (`single_choice`, `multiple_choice`, `open_text`) en vez de un motor genérico. Las opciones viven en `options text[]` y un `allow_other bool` controla si la pregunta acepta una respuesta libre extra además de las opciones. Migrado desde `type text` libre + `config jsonb` ([`supabase/migrations/20260509200000_quiz_question_typed_options.sql`](supabase/migrations/20260509200000_quiz_question_typed_options.sql)).
 - **Una sola tabla `appointment`** con `status`, en vez de tabla `appointment_request` aparte. La "solicitud" no es una entidad distinta.
 - **`quiz_snapshot jsonb`** guarda preguntas + respuestas juntas, inmutable al momento de la solicitud.
 - **Cloudflare adapter** para Astro (decidido, no implementado todavía). SSR solo en `/admin/*`; el sitio público sigue prerenderizado.
