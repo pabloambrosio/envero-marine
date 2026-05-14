@@ -1,0 +1,214 @@
+---
+// Modal genérico. Agnóstico del contenido — recibe lo que se quiera mostrar
+// vía <slot/>. Si mañana hace falta otro form, se cambia el slot y este
+// componente sigue intacto.
+//
+// Uso:
+//   <Modal id="appointment" title="Agendar conversación">
+//     <AppointmentWizard />
+//   </Modal>
+//
+// Para abrirlo desde cualquier lado:
+//   <button data-open-modal="appointment">Conversemos</button>
+//
+// Cualquier elemento con [data-modal-close] adentro del modal lo cierra.
+// El backdrop click y la tecla Esc también cierran (Esc lo maneja <dialog>
+// nativo).
+
+interface Props {
+  id: string;
+  title?: string;
+}
+
+const { id, title } = Astro.props;
+const titleId = title ? `${id}-title` : undefined;
+---
+
+<dialog
+  id={id}
+  class="modal"
+  aria-labelledby={titleId}
+>
+  <div class="modal__panel">
+    <header class="modal__head">
+      {
+        title ? (
+          <h2 class="modal__title" id={titleId}>{title}</h2>
+        ) : (
+          <span aria-hidden="true" />
+        )
+      }
+      <button
+        class="modal__close"
+        type="button"
+        data-modal-close
+        aria-label="Cerrar"
+      >
+        <span class="modal__closeIcon" aria-hidden="true">×</span>
+      </button>
+    </header>
+    <div class="modal__body">
+      <slot />
+    </div>
+  </div>
+</dialog>
+
+<script>
+  type Dlg = HTMLDialogElement;
+
+  function lockBody(open: boolean) {
+    document.body.classList.toggle("is-modalOpen", open);
+  }
+
+  function bind(modal: Dlg) {
+    // Cierre por backdrop: con <dialog>, el click sobre el backdrop dispara
+    // el evento con event.target === el propio <dialog>, no el panel.
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) modal.close();
+    });
+
+    // Cierre por cualquier [data-modal-close] adentro.
+    modal.querySelectorAll<HTMLElement>("[data-modal-close]").forEach((el) => {
+      el.addEventListener("click", () => modal.close());
+    });
+
+    // Body scroll lock (algunos browsers no lo hacen para <dialog> modal).
+    modal.addEventListener("close", () => lockBody(false));
+  }
+
+  document
+    .querySelectorAll<Dlg>("dialog.modal")
+    .forEach((m) => bind(m));
+
+  // Apertura via [data-open-modal="<id>"]. Delegado al document para que
+  // funcione con triggers que se monten dinámicamente.
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element | null;
+    const trigger = target?.closest<HTMLElement>("[data-open-modal]");
+    if (!trigger) return;
+    const id = trigger.dataset.openModal;
+    if (!id) return;
+    const modal = document.getElementById(id);
+    if (modal instanceof HTMLDialogElement) {
+      event.preventDefault();
+      modal.showModal();
+      lockBody(true);
+    }
+  });
+</script>
+
+<style>
+  .modal {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100svh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    overflow: hidden;
+  }
+
+  .modal::backdrop {
+    background-color: rgba(10, 42, 36, 0.72);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  .modal[open] {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .modal__panel {
+    margin: auto;
+    width: min(720px, calc(100vw - var(--space-5)));
+    max-height: calc(100svh - var(--space-5));
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 30px 80px -20px rgba(10, 42, 36, 0.45);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .modal__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-6);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .modal__title {
+    margin: 0;
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--color-ink);
+  }
+
+  .modal__close {
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--color-line);
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--color-ink-muted);
+    transition:
+      color 120ms var(--ease-out),
+      border-color 120ms var(--ease-out);
+  }
+
+  .modal__close:hover,
+  .modal__close:focus-visible {
+    color: var(--color-ink);
+    border-color: var(--color-ink);
+    outline: none;
+  }
+
+  .modal__closeIcon {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .modal__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-6);
+  }
+
+  @media (max-width: 640px) {
+    .modal__panel {
+      width: 100vw;
+      max-height: 100svh;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+    }
+
+    .modal__head {
+      padding: var(--space-4) var(--space-5);
+    }
+
+    .modal__body {
+      padding: var(--space-5);
+    }
+  }
+</style>
+
+<style is:global>
+  body.is-modalOpen {
+    overflow: hidden;
+  }
+</style>

@@ -1,6 +1,8 @@
 ---
 import { Font } from "astro:assets";
 import { resolveLang, useTranslations } from "../i18n/utils";
+import Modal from "../components/Modal.astro";
+import AppointmentWizard from "../components/appointment/AppointmentWizard.astro";
 import "../styles/global.css";
 
 interface Props {
@@ -36,5 +38,8 @@ const { title = t("meta.title"), description = t("meta.description") } = Astro.p
   </head>
   <body>
     <slot />
+    <Modal id="appointment" title={t("wizard.modal.title")}>
+      <AppointmentWizard />
+    </Modal>
   </body>
 </html>

@@ -20,10 +20,10 @@ const t = useTranslations(lang);
       </ul>
 
       <div class="hero__actions">
-        <a href="#contacto" class="btn btn--primary">
+        <button type="button" class="btn btn--primary" data-open-modal="appointment">
           <span>{t("hero.cta.primary")}</span>
           <span class="btn__arrow" aria-hidden="true">→</span>
-        </a>
+        </button>
         <a href="#servicios" class="btn btn--ghost">
           <span>{t("hero.cta.secondary")}</span>
           <span class="btn__arrow" aria-hidden="true">→</span>
