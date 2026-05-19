@@ -220,8 +220,6 @@ const expandLabels = {
 
     const sectionsMap = new Map(modalData.map((s) => [s.id, s]));
     let activeSection = null;
-    let activeCardLogo = null;
-    let activeGhost = null;
 
     function populate(data) {
       modal.dataset.own = data.isOwnService ? "true" : "false";
@@ -271,70 +269,8 @@ const expandLabels = {
         if (!data) return;
         activeSection = data;
         populate(data);
-
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          modal.showModal();
-          modal.style.setProperty("--modal-backdrop-opacity", "1");
-          return;
-        }
-
-        const cardLogo = card.querySelector(".services__logo");
-        const cardRect = cardLogo?.getBoundingClientRect();
-
         modal.showModal();
-
-        const modalImg = artEl.querySelector("img");
-        if (cardLogo && cardRect && modalImg) {
-          const modalRect = modalImg.getBoundingClientRect();
-          const sx = modalRect.width / cardRect.width;
-          const sy = modalRect.height / cardRect.height;
-
-          if (activeGhost) activeGhost.remove();
-
-          const ghost = cardLogo.cloneNode(true);
-          ghost.style.position = "fixed";
-          ghost.style.top = "0";
-          ghost.style.left = "0";
-          ghost.style.margin = "0";
-          ghost.style.width = `${cardRect.width}px`;
-          ghost.style.height = `${cardRect.height}px`;
-          ghost.style.transformOrigin = "0 0";
-          ghost.style.transition = "none";
-          ghost.style.transform = `translate(${cardRect.left}px, ${cardRect.top}px)`;
-          ghost.style.zIndex = "9999";
-          ghost.style.pointerEvents = "none";
-          document.body.appendChild(ghost);
-
-          cardLogo.style.visibility = "hidden";
-          activeCardLogo = cardLogo;
-          activeGhost = ghost;
-
-          ghost.addEventListener("transitionend", () => {
-            ghost.remove();
-            if (activeGhost === ghost) activeGhost = null;
-          }, { once: true });
-
-          requestAnimationFrame(() => {
-            ghost.style.transition = "transform 420ms var(--ease-out)";
-            ghost.style.transform = `translate(${modalRect.left}px, ${modalRect.top}px) scale(${sx}, ${sy})`;
-            setTimeout(() => {
-              modal.style.setProperty("--modal-backdrop-opacity", "1");
-            }, 280);
-          });
-        }
       });
-    });
-
-    modal.addEventListener("close", () => {
-      modal.style.removeProperty("--modal-backdrop-opacity");
-      if (activeCardLogo) {
-        activeCardLogo.style.visibility = "";
-        activeCardLogo = null;
-      }
-      if (activeGhost) {
-        activeGhost.remove();
-        activeGhost = null;
-      }
     });
 
     closeEl.addEventListener("click", () => modal.close());
@@ -748,21 +684,10 @@ const expandLabels = {
     color: var(--color-ink);
     border: 1px solid var(--color-primary);
     box-shadow: 0 24px 48px rgba(10, 42, 36, 0.18);
-    opacity: var(--modal-backdrop-opacity, 0);
-    transition: opacity 280ms var(--ease-out);
   }
 
   .services__modal::backdrop {
     background: rgba(10, 42, 36, 0.72);
-    opacity: var(--modal-backdrop-opacity, 0);
-    transition: opacity 280ms var(--ease-out);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .services__modal,
-    .services__modal::backdrop {
-      transition: none;
-    }
   }
 
   .services__modal[open] {
