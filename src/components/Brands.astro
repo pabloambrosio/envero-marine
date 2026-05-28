@@ -1,0 +1,474 @@
+---
+import { resolveLang } from "../i18n/utils";
+import type { Lang } from "../i18n/ui";
+
+const lang = resolveLang(Astro.currentLocale);
+
+type LocalizedString = Record<Lang, string>;
+
+interface Brand {
+  src: string;
+  alt: string;
+  specialty: LocalizedString;
+  description: LocalizedString;
+}
+
+const brands: Brand[] = [
+  {
+    src: "/logos/totalenergies.svg",
+    alt: "TotalEnergies",
+    specialty: {
+      es: "Lubricación industrial",
+      en: "Industrial lubrication",
+    },
+    description: {
+      es: "División de lubricantes y grasas para industria, transporte y operaciones marinas.",
+      en: "Lubricants and greases division for industry, transport and marine operations.",
+    },
+  },
+  {
+    src: "/logos/current-technology.png",
+    alt: "Current Technology",
+    specialty: {
+      es: "Protección contra sobretensiones",
+      en: "Surge protection",
+    },
+    description: {
+      es: "Tres décadas en protección de tableros críticos y monitoreo de calidad de energía.",
+      en: "Three decades in critical panel protection and power quality monitoring.",
+    },
+  },
+  {
+    src: "/logos/qer.png",
+    alt: "Qer",
+    specialty: {
+      es: "Química técnica industrial",
+      en: "Industrial chemistry",
+    },
+    description: {
+      es: "Químicos industriales para limpieza, desinfección y mantenimiento técnico.",
+      en: "Industrial chemicals for cleaning, disinfection and technical maintenance.",
+    },
+  },
+  {
+    src: "/logos/fonroche.webp",
+    alt: "Fonroche Lighting America",
+    specialty: {
+      es: "Alumbrado solar autónomo",
+      en: "Autonomous solar lighting",
+    },
+    description: {
+      es: "Alumbrado solar autónomo con doce años de operación sin mantenimiento.",
+      en: "Autonomous solar lighting with twelve maintenance-free years of operation.",
+    },
+  },
+];
+
+const eyebrow: LocalizedString = {
+  es: "Acompañamiento técnico",
+  en: "Technical guidance",
+};
+
+const heading: LocalizedString = {
+  es: "Especialistas a tu lado en cada decisión de compra.",
+  en: "Specialists by your side on every purchasing decision.",
+};
+
+const description: LocalizedString = {
+  es: "Te acompañamos en la selección de suministros dentro de las líneas de cuatro fabricantes líderes a nivel mundial — para que cada compra responda a las condiciones reales de tu operación.",
+  en: "We guide you through the selection of supplies across the lines of four world-leading manufacturers — so every purchase matches the real conditions of your operation.",
+};
+
+const aria: LocalizedString = {
+  es: "Marcas representadas por Envero",
+  en: "Brands represented by Envero",
+};
+
+const actions = {
+  catalog: {
+    es: "Ver catálogo completo",
+    en: "View full catalog",
+  } as LocalizedString,
+  download: {
+    es: "Descargar brochure",
+    en: "Download brochure",
+  } as LocalizedString,
+};
+---
+
+<section class="brands" aria-label={aria[lang]}>
+  <div class="brands__layout">
+    <ul class="brands__grid" aria-label={aria[lang]}>
+      {
+        brands.map((brand) => (
+          <li class="brands__cell">
+            <div class="brands__logoWrap">
+              <img
+                class="brands__logo"
+                src={brand.src}
+                alt={brand.alt}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="brands__cellText">
+              <span class="brands__specialty">{brand.specialty[lang]}</span>
+              <p class="brands__cellDesc">{brand.description[lang]}</p>
+            </div>
+             <div class="brands__actions">
+              {/* <button type="button" class="brands__action brands__action--primary">
+                <span>{actions.catalog[lang]}</span>
+                <span class="brands__actionArrow" aria-hidden="true">→</span>
+              </button> */}
+              <button type="button" class="brands__action">
+                <span>{actions.catalog[lang]}</span>
+                {/* <span>{actions.download[lang]}</span> */}
+                <span class="brands__actionArrow brands__actionArrow--down" aria-hidden="true">↓</span>
+              </button>
+            </div> 
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="brands__text">
+      <span class="brands__eyebrow">{eyebrow[lang]}</span>
+      <h2 class="brands__heading">{heading[lang]}</h2>
+      <p class="brands__desc">{description[lang]}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .brands {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 80vh;
+    padding: var(--space-8) 0;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-deep) 0%,
+      var(--color-primary) 55%,
+      var(--color-primary-soft) 100%
+    );
+    color: #fff;
+    display: flex;
+    align-items: center;
+  }
+
+  .brands::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-attachment: fixed;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 8%,
+      #000 92%,
+      transparent 100%
+    );
+    animation: brands-grid-drift 5s linear infinite;
+  }
+
+  @keyframes brands-grid-drift {
+    from { background-position: 0 0; }
+    to   { background-position: -56px -56px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .brands::before {
+      animation: none;
+    }
+  }
+
+  .brands__layout {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--space-8);
+    align-items: center;
+  }
+
+  .brands__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 1fr;
+    gap: var(--space-5);
+    aspect-ratio: 1 / 1;
+    max-height: 64vh;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  .brands__cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    padding: var(--space-5);
+    gap: var(--space-4);
+    min-width: 0;
+    min-height: 0;
+    justify-content: space-between;
+    transition: border-color 200ms var(--ease-out),
+      transform 200ms var(--ease-out);
+  }
+
+  /* .brands__cell::before,
+  .brands__cell::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-color: var(--color-accent);
+    opacity: 0.55;
+    pointer-events: none;
+    transition: opacity 200ms var(--ease-out);
+  } */
+
+  /* .brands__cell::before {
+    top: 8px;
+    left: 8px;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  .brands__cell::after {
+    bottom: 8px;
+    right: 8px;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+  } */
+
+  .brands__cell:hover {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  /* .brands__cell:hover::before,
+  .brands__cell:hover::after {
+    opacity: 1;
+  } */
+
+  .brands__logoWrap {
+    /* flex: 1 1 0; */
+    /* display: grid; */
+    position: absolute;
+    inset: 0;
+    place-items: center;
+    min-height: 0;
+    padding: var(--space-4);
+    z-index: 0;
+  }
+
+  .brands__logoWrap::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(14, 61, 52, 0.05), rgba(14, 61, 52, 0.05)),
+      var(--color-bg);
+    opacity: 0.92;
+    pointer-events: none;
+  }
+
+  .brands__logo {
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+
+    /* width: 100%;
+    height: 100%;
+    max-width: 220px;
+    max-height: 96px; */
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .brands__cellText {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .brands__specialty {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .brands__cellDesc {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--color-ink-muted);
+  }
+
+  .brands__actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .brands__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background: transparent;
+    border: 1px solid var(--color-line);
+    color: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: left;
+    cursor: pointer;
+    transition:
+      background-color 200ms var(--ease-out),
+      border-color 200ms var(--ease-out),
+      color 200ms var(--ease-out);
+  }
+
+  .brands__action--primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+
+  .brands__action--primary:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .brands__action:not(.brands__action--primary):hover {
+    border-color: var(--color-primary);
+    background: rgba(14, 61, 52, 0.04);
+  }
+
+  .brands__actionArrow {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .brands__action:hover .brands__actionArrow {
+    transform: translateX(2px);
+  }
+
+  .brands__action:hover .brands__actionArrow--down {
+    transform: translateY(2px);
+  }
+
+  .brands__text {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    max-width: 48ch;
+    align-items: start;
+  }
+
+  .brands__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .brands__heading {
+    margin: 0;
+    font-size: clamp(2rem, 1.2rem + 2.2vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.05;
+    letter-spacing: -0.028em;
+    color: #fff;
+  }
+
+  .brands__desc {
+    margin: 0;
+    font-size: var(--fs-lg);
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  @media (max-width: 960px) {
+    .brands {
+      min-height: 0;
+      padding: var(--space-7) 0;
+    }
+
+    .brands__layout {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+
+    .brands__grid {
+      max-height: none;
+      max-width: 560px;
+    }
+
+    .brands__text {
+      max-width: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .brands {
+      padding: var(--space-6) 0;
+    }
+
+    .brands__cell {
+      padding: var(--space-4);
+      gap: var(--space-4);
+    }
+
+    .brands__logoWrap {
+      padding: var(--space-2);
+    }
+
+    .brands__logo {
+      max-height: 64px;
+    }
+
+    .brands__specialty {
+      font-size: 0.66rem;
+    }
+
+    .brands__cellDesc {
+      font-size: var(--fs-xs);
+    }
+
+    .brands__desc {
+      font-size: var(--fs-md);
+    }
+  }
+</style>
