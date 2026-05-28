@@ -1,0 +1,134 @@
+// envero-marine — schema actual de Supabase (public)
+// Pegar en https://dbdiagram.io/d para visualizar.
+// Fuente de verdad: supabase/migrations/*.sql
+
+Project envero_marine {
+  database_type: 'PostgreSQL'
+  Note: 'Schema de envero-marine. Staff en app_user (FK a auth.users), clientes anónimos en client. Citas con status, slot constraints en DB.'
+}
+
+Enum question_type {
+  single_choice
+  multiple_choice
+  open_text
+}
+
+Enum app_user_role {
+  admin
+  vendor
+}
+
+Enum appointment_status {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+Table app_user {
+  id uuid [pk, note: 'FK a auth.users(id) on delete cascade']
+  name text [not null]
+  email text [not null, unique]
+  role app_user_role [not null]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Note: 'Staff interno (admin / vendor). Espeja una fila de auth.users.'
+}
+
+Table client {
+  id uuid [pk, default: `gen_random_uuid()`]
+  name text [not null]
+  email text
+  phone text
+  company_name text
+  ip_hash text
+  created_at timestamptz [not null, default: `now()`]
+
+  Note: 'Leads / visitantes anónimos. Sin auth. Datos del form de contacto / quiz.'
+}
+
+Table quiz {
+  id uuid [pk, default: `gen_random_uuid()`]
+  title text [not null]
+  description text
+  version int [not null, default: 1]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  Note: 'Plantillas de quiz. Las preguntas viven en quiz_question.'
+}
+
+Table quiz_question {
+  id uuid [pk, default: `gen_random_uuid()`]
+  quiz_id uuid [not null, ref: > quiz.id, note: 'on delete cascade']
+  position int [not null, default: 0]
+  prompt text [not null]
+  type question_type [not null]
+  options "text[]" [not null, default: `'{}'`]
+  allow_other boolean [not null, default: true]
+  required boolean [not null, default: true]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    (quiz_id, position) [name: 'idx_quiz_question_quiz_position']
+  }
+
+  Note: '''
+    Pregunta de un quiz. Tres tipos cerrados.
+    CHECK cruzado:
+      - single_choice / multiple_choice → cardinality(options) >= 2
+      - open_text → sin options y allow_other = true
+  '''
+}
+
+Table appointment {
+  id uuid [pk, default: `gen_random_uuid()`]
+  client_id uuid [not null, ref: > client.id, note: 'on delete cascade']
+  vendor_id uuid [ref: > app_user.id]
+  quiz_id uuid [ref: > quiz.id]
+  quiz_snapshot jsonb [not null, note: 'Preguntas + respuestas inmutables al pedir la cita']
+  appointment_date timestamptz [not null]
+  status appointment_status [not null, default: 'pending']
+  notes text
+  created_at timestamptz [not null, default: `now()`]
+  updated_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    status [name: 'idx_appointment_status']
+    vendor_id [name: 'idx_appointment_vendor']
+    appointment_date [unique, name: 'appointment_one_real_per_slot', note: 'partial: status in (confirmed, completed)']
+  }
+
+  Note: '''
+    Citas y solicitudes (pending = solicitud).
+    Reglas en DB (America/Merida):
+      - appointment_slot_on_hour_check: hora exacta (sin minutos)
+      - appointment_slot_business_hours_check: Lun–Vie, 08–17
+      - appointment_one_real_per_slot: 1 sola cita real por slot
+        (pending y cancelled coexisten; confirmed/completed son únicos)
+  '''
+}
+
+Table message {
+  id uuid [pk, default: `gen_random_uuid()`]
+  name text [not null]
+  email text [not null]
+  phone text
+  subject text
+  message text [not null]
+  ip_hash text
+  read boolean [not null, default: false]
+  handled_by uuid [ref: > app_user.id]
+  created_at timestamptz [not null, default: `now()`]
+
+  Note: 'Formulario de contacto. handled_by apunta al admin que respondió.'
+}
+
+// Nota: app_user.id es FK a auth.users(id). auth.users vive en el schema
+// auth de Supabase y no se modela acá para mantener el diagrama enfocado
+// en public.
