@@ -11,7 +11,7 @@ const t = useTranslations(lang);
     <div class="hero__content">
       <span class="eyebrow hero__eyebrow">{t("hero.eyebrow")}</span>
       <h1 class="hero__title">
-        {t("hero.title.lead")}<em class="hero__title-emph">{t("hero.title.emph")}</em>{t("hero.title.tail")}
+        {t("hero.title.lead")}<em class="hero__title-emph">{t("hero.title.emph")}</em>{t("hero.title.mid")}<em class="hero__title-emph">{t("hero.title.emph2")}</em>{t("hero.title.tail")}
       </h1>
       <ul class="hero__checks" aria-label={t("hero.checks.aria")}>
         <li>{t("hero.checks.local")}</li>
@@ -277,7 +277,7 @@ const t = useTranslations(lang);
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-2);
     max-width: 56ch;
   }
 
