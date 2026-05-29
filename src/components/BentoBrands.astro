@@ -1,0 +1,363 @@
+---
+// BentoBrands — andamio de cuadrícula para experimentar con el layout.
+// Grid de 9 filas × 3 columnas. La primera card ocupa el bloque 2×2
+// (cuadros 01, 02, 04, 05 = columnas 1–2, filas 1–2).
+// El resto siguen siendo placeholders numerados mientras diseñamos.
+const covered = new Set([
+  1, 2, 4, 5, 7, 8, 10, 13, 16, 19, 22, 25, 20, 23, 26, 11, 14, 17,
+  12, 15, 18, 21, 24, 27, 3, 6, 9,
+]);
+const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
+  (n) => !covered.has(n)
+);
+---
+
+<section class="bento" aria-label="BentoBrands (work in progress)">
+  <div class="bento__layout">
+    <div class="bento__grid">
+      <div class="bento__card bento__card--lead">
+        <p class="bento__cardText">
+          Especialistas a tu lado en cada decisión de compra
+        </p>
+      </div>
+      <div class="bento__card bento__card--logo">
+        <img
+          class="bento__logo"
+          src="/logos/totalenergies.svg"
+          alt="TotalEnergies"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="bento__brandCaption">Líder mundial en lubricantes</span>
+        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de TotalEnergies">
+          <span>Ver catálogo</span>
+          <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="bento__card bento__card--logo2">
+        <img
+          class="bento__logo"
+          src="/logos/current-technology.png"
+          alt="Current Technology"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="bento__brandCaption">Protección contra sobretensiones</span>
+        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de Current Technology">
+          <span>Ver catálogo</span>
+          <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="bento__card bento__card--logo3">
+        <img
+          class="bento__logo"
+          src="/logos/qer.png"
+          alt="Qer"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="bento__brandCaption">Química técnica industrial</span>
+        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de Qer">
+          <span>Ver catálogo</span>
+          <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="bento__card bento__card--logo4">
+        <img
+          class="bento__logo"
+          src="/logos/fonroche.webp"
+          alt="Fonroche Lighting America"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="bento__brandCaption">Alumbrado solar autónomo</span>
+        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de Fonroche Lighting America">
+          <span>Ver catálogo</span>
+          <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="bento__card bento__card--shake">
+        <img
+          class="bento__shakeImg"
+          src="/handshake2.jpeg"
+          alt="Apretón de manos cerrando un acuerdo"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="bento__card bento__card--photo">
+        <img
+          class="bento__photo"
+          src="/asset-bento1.jpeg"
+          alt="Equipo de Envero trabajando en conjunto"
+          loading="lazy"
+          decoding="async"
+        />
+        <div class="bento__photoText">
+          <span class="bento__photoEyebrow">Equipo</span>
+          <p class="bento__photoTitle">Trabajando mano a mano contigo</p>
+        </div>
+      </div>
+      {cells.map((n) => (
+        <div class="bento__cell">
+          <span class="bento__index">{n.toString().padStart(2, "0")}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bento {
+    position: relative;
+    padding: var(--space-8) 0;
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-deep) 0%,
+      var(--color-primary) 55%,
+      var(--color-primary-soft) 100%
+    );
+    color: #fff;
+  }
+
+  .bento__layout {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+  }
+
+  .bento__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(9, 1fr);
+    gap: var(--space-3);
+    max-height: 85vh;
+    height: 85vh;
+  }
+
+  .bento__cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+  }
+
+  .bento__index {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .bento__card {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+  }
+
+  /* Bloque 2×3 superior izquierdo: cuadros 01, 02, 04, 05, 07, 08 */
+  .bento__card--lead {
+    grid-column: 1 / 3;
+    grid-row: 1 / 4;
+    align-items: flex-end;
+    padding: var(--space-6);
+    background: var(--color-bg);
+  }
+
+  .bento__cardText {
+    margin: 0;
+    font-size: clamp(2.5rem, 1.4rem + 4vw, 5rem);
+    font-weight: 600;
+    line-height: .95;
+    letter-spacing: -0.035em;
+    color: var(--color-primary);
+    text-wrap: balance;
+  }
+
+  /* Columna vertical izquierda: cuadros 10, 13, 16, 19 */
+  .bento__card--logo {
+    grid-column: 1 / 2;
+    grid-row: 4 / 8;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-sand);
+    padding: var(--space-6);
+  }
+
+  /* Columna vertical izquierda: cuadros 22, 25 */
+  .bento__card--logo2 {
+    grid-column: 1 / 2;
+    grid-row: 8 / 10;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-sand);
+    padding: var(--space-6);
+  }
+
+  /* Columna vertical derecha: cuadros 20, 23, 26 */
+  .bento__card--logo3 {
+    grid-column: 2 / 3;
+    grid-row: 7 / 10;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-sand);
+    padding: var(--space-6);
+  }
+
+  /* Columna vertical derecha: cuadros 11, 14, 17 */
+  .bento__card--logo4 {
+    grid-column: 2 / 3;
+    grid-row: 4 / 7;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-sand);
+    padding: var(--space-6);
+  }
+
+  /* Las cards de marca apilan logo + subtítulo, centrados */
+  .bento__card--logo,
+  .bento__card--logo2,
+  .bento__card--logo3,
+  .bento__card--logo4 {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .bento__logo {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .bento__brandCaption {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    text-align: center;
+    color: var(--color-primary);
+    opacity: 0.78;
+  }
+
+  .bento__brandLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-bg);
+    transition:
+      background-color 200ms var(--ease-out),
+      border-color 200ms var(--ease-out);
+  }
+
+  .bento__brandLink:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .bento__brandLinkArrow {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .bento__brandLink:hover .bento__brandLinkArrow {
+    transform: translateX(2px);
+  }
+
+  /* Esquina superior derecha: cuadros 03, 06, 09 */
+  .bento__card--shake {
+    grid-column: 3 / 4;
+    grid-row: 1 / 4;
+    overflow: hidden;
+    padding: 0;
+    background: var(--color-sand);
+  }
+
+  .bento__shakeImg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Columna derecha completa: cuadros 12, 15, 18, 21, 24, 27 */
+  .bento__card--photo {
+    grid-column: 3 / 4;
+    grid-row: 4 / 10;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .bento__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Oscurecido para que el header se lea sobre la foto */
+  .bento__card--photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(10, 42, 36, 0.85) 0%,
+      rgba(10, 42, 36, 0.4) 35%,
+      rgba(10, 42, 36, 0.05) 65%
+    );
+    pointer-events: none;
+  }
+
+  .bento__photoText {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-6);
+  }
+
+  .bento__photoEyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .bento__photoTitle {
+    margin: 0;
+    font-size: clamp(1.25rem, 0.9rem + 1vw, 1.75rem);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+</style>
