@@ -1,124 +1,130 @@
 ---
 import { resolveLang, useTranslations } from "../i18n/utils";
-import type { TranslationKey } from "../i18n/ui";
 
 const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
 
-const partKeys: TranslationKey[] = [
-  "metalurgia.parts.item.01",
-  "metalurgia.parts.item.02",
-  "metalurgia.parts.item.03",
-  "metalurgia.parts.item.04",
-  "metalurgia.parts.item.05",
-  "metalurgia.parts.item.06",
-  "metalurgia.parts.item.07",
-  "metalurgia.parts.item.08",
-  "metalurgia.parts.item.09",
-  "metalurgia.parts.item.10",
+// Iconos de trazo fino (blueprint industrial: sin relleno, esquinas a escuadra).
+const icons: Record<string, string> = {
+  storage: '<path d="M3 14h7v7H3zM14 14h7v7h-7zM8.5 3h7v7h-7z"/>',
+  structure: '<path d="M3 21 12 3l9 18M3 21h18M6.5 14h11"/>',
+  access: '<path d="M8 3v18M16 3v18M8 8h8M8 12h8M8 16h8"/>',
+  safety:
+    '<path d="M12 3 4 6v6c0 4.5 4 7.5 8 9 4-1.5 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/>',
+  ducts: '<path d="M2 8h20M2 16h20M7 8v8M17 8v8"/>',
+  coating: '<path d="M12 3 3 8l9 5 9-5-9-5ZM3 13l9 5 9-5"/>',
+};
+
+// Fila 1: 3 celdas, cada una con 2 mini cards. Fila 2 (full): galería de 3 imágenes.
+const cells = [
+  {
+    cards: [
+      {
+        icon: "storage",
+        title: "Almacenamiento y transporte",
+        subtitle: "Racks, bastidores, canastillas, cajas y contenedores",
+      },
+      {
+        icon: "structure",
+        title: "Estructura y soportería",
+        subtitle: "Estructuras para techumbres y cubiertas, más bases para equipos",
+      },
+    ],
+  },
+  {
+    cards: [
+      {
+        icon: "access",
+        title: "Accesos y habilitación naval",
+        subtitle: "Escaleras marinas, escotillas, pasamanos y plataformas de acceso",
+      },
+      {
+        icon: "safety",
+        title: "Protección y seguridad industrial",
+        subtitle: "Barandales, rejillas, protecciones y guardas para equipos",
+      },
+    ],
+  },
+  {
+    cards: [
+      {
+        icon: "ducts",
+        title: "Conducción y manejo de materiales",
+        subtitle: "Ductos metálicos y tolvas para líneas de conducción y descarga",
+      },
+      {
+        icon: "coating",
+        title: "Tratamiento anticorrosivo",
+        subtitle: "Acabado protector que se aplica sobre toda la estructura fabricada",
+      },
+    ],
+  },
+];
+
+const gallery = [
+  { src: "/metalurgia/ahsanization-mJi2I9KJPQ8-unsplash.jpg", alt: "" },
+  { src: "/metalurgia/jason-richard-Hlhc8gQUW6I-unsplash.jpg", alt: "" },
+  { src: "/metalurgia/morteza-mohammadi-ZkvJnta6bAI-unsplash.jpg", alt: "" },
 ];
 ---
 
 <section class="met" id="fabricacion" aria-label={t("metalurgia.aria")}>
   <div class="met__container">
-    <div class="met__top">
-      <div class="met__textCol">
-        <span class="met__eyebrow">{t("metalurgia.eyebrow")}</span>
+    <header class="met__head">
+      <h2 class="met__heading">
+        {t("metalurgia.heading.lead")}<em class="met__headingEmph"
+          >{t("metalurgia.heading.emph")}</em
+        >{t("metalurgia.heading.tail")}
+      </h2>
 
-        <h2 class="met__heading">
-          {t("metalurgia.heading.lead")}<em class="met__headingEmph"
-            >{t("metalurgia.heading.emph")}</em
-          >{t("metalurgia.heading.tail")}
-        </h2>
+      <p class="met__lead">{t("metalurgia.lead")}</p>
+    </header>
 
-        <p class="met__lead">{t("metalurgia.lead")}</p>
+    <div class="met__grid">
+      {
+        cells.map((cell) => (
+          <div class="met__cell">
+            <div class="met__cards">
+              {cell.cards.map((card) => (
+                <div class="met__miniCard">
+                  <svg
+                    class="met__miniIcon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    aria-hidden="true"
+                    set:html={icons[card.icon]}
+                  />
 
-        <dl class="met__meta">
-          <div class="met__metaItem">
-            <dt>{t("metalurgia.meta.material")}</dt>
-            <dd>{t("metalurgia.meta.materialValue")}</dd>
+                  <div class="met__miniText">
+                    <span class="met__miniTitle">{card.title}</span>
+                    <span class="met__miniSub">{card.subtitle}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div class="met__metaItem">
-            <dt>{t("metalurgia.meta.finish")}</dt>
-            <dd>{t("metalurgia.meta.finishValue")}</dd>
-          </div>
-          <div class="met__metaItem">
-            <dt>{t("metalurgia.meta.base")}</dt>
-            <dd>{t("metalurgia.meta.baseValue")}</dd>
-          </div>
-        </dl>
+        ))
+      }
 
-        <button
-          type="button"
-          class="btn btn--primary met__cta"
-          data-open-modal="appointment"
-        >
-          <span>{t("metalurgia.cta")}</span>
-          <span class="btn__arrow" aria-hidden="true">→</span>
-        </button>
-      </div>
-
-      <figure class="met__plate" aria-labelledby="met-plate-caption">
-        <span class="met__corner met__corner--tl" aria-hidden="true"></span>
-        <span class="met__corner met__corner--tr" aria-hidden="true"></span>
-        <span class="met__corner met__corner--bl" aria-hidden="true"></span>
-        <span class="met__corner met__corner--br" aria-hidden="true"></span>
-
-        <span class="met__cote met__cote--top" aria-hidden="true">
-          <span>{t("metalurgia.dwg")}</span>
-          <span class="met__coteSep">·</span>
-          <span>{t("metalurgia.scale")}</span>
-        </span>
-
-        <span class="met__cote met__cote--right" aria-hidden="true">
-          <span class="met__tick"></span>
-          <span class="met__tick"></span>
-          <span class="met__tick"></span>
-          <span class="met__tick"></span>
-        </span>
-
-        <span class="met__cote met__cote--bottom" aria-hidden="true">
-          <span>{t("metalurgia.rev")}</span>
-        </span>
-
-        <div class="met__plateInner">
-          <img
-            class="met__img"
-            src="/metalurgia/blueprint.jpeg"
-            alt={t("metalurgia.imageAlt")}
-            loading="lazy"
-            decoding="async"
-            width="1200"
-            height="900"
-          />
+      <div class="met__cell met__cell--full">
+        <div class="met__gallery">
+          {
+            gallery.map((img) => (
+              <img
+                class="met__galleryImg"
+                src={img.src}
+                alt={img.alt}
+                loading="lazy"
+                decoding="async"
+                width="800"
+                height="600"
+              />
+            ))
+          }
         </div>
-
-        <figcaption id="met-plate-caption" class="met__plateCaption">
-          <span>{t("metalurgia.imageAlt")}</span>
-        </figcaption>
-      </figure>
-    </div>
-
-    <div class="met__parts">
-      <header class="met__partsHead">
-        <span class="met__partsTag">{t("metalurgia.parts.tag")}</span>
-        <h3 class="met__partsHeading">{t("metalurgia.parts.heading")}</h3>
-      </header>
-
-      <ol class="met__partsList">
-        {
-          partKeys.map((key, i) => (
-            <li class="met__part">
-              <span class="met__partNum" aria-hidden="true">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span class="met__partLabel">{t(key)}</span>
-              <span class="met__partLead" aria-hidden="true" />
-              <span class="met__partMark" aria-hidden="true">→</span>
-            </li>
-          ))
-        }
-      </ol>
+      </div>
     </div>
   </div>
 </section>
@@ -133,7 +139,7 @@ const partKeys: TranslationKey[] = [
     overflow: hidden;
   }
 
-  /* hairline grid background — same grammar as Brands but on cream */
+  /* hairline grid background — same grammar as the other cream sections */
   .met::before {
     content: "";
     position: absolute;
@@ -158,32 +164,17 @@ const partKeys: TranslationKey[] = [
     max-width: var(--container-max);
     margin-inline: auto;
     padding-inline: var(--space-5);
-    display: grid;
-    gap: var(--space-8);
-  }
-
-  /* ── top zone: asymmetric split ───────────────────────── */
-  .met__top {
-    display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: var(--space-8);
-    align-items: stretch;
-  }
-
-  .met__textCol {
     display: flex;
     flex-direction: column;
-    gap: var(--space-5);
-    padding-top: var(--space-3);
+    gap: var(--space-7);
   }
 
-  .met__eyebrow {
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-accent);
+  /* ── heading ───────────────────────────────────────────── */
+  .met__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+
   }
 
   .met__heading {
@@ -193,7 +184,7 @@ const partKeys: TranslationKey[] = [
     line-height: 1.04;
     letter-spacing: -0.03em;
     color: var(--color-primary);
-    max-width: 16ch;
+    /* max-width: 18ch; */
   }
 
   .met__headingEmph {
@@ -208,315 +199,111 @@ const partKeys: TranslationKey[] = [
     font-size: var(--fs-md);
     line-height: 1.6;
     color: var(--color-ink-muted);
-    max-width: 44ch;
+    max-width: 48ch;
   }
 
-  /* meta strip — three small spec entries */
-  .met__meta {
-    margin: var(--space-2) 0 0;
-    padding: var(--space-4) 0;
+  /* ── grid 3 × 2 (placeholder) ──────────────────────────── */
+  .met__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
-    border-top: 1px solid var(--color-line);
-    border-bottom: 1px solid var(--color-line);
-  }
-
-  .met__metaItem {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-    min-width: 0;
-  }
-
-  .met__metaItem dt {
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-ink-muted);
-  }
-
-  .met__metaItem dd {
-    margin: 0;
-    font-size: var(--fs-sm);
-    line-height: 1.35;
-    color: var(--color-ink);
-  }
-
-  .met__cta {
-    align-self: flex-start;
-    margin-top: var(--space-2);
-  }
-
-  /* ── plate (drawing frame) ────────────────────────────── */
-  .met__plate {
-    position: relative;
-    margin: 0;
-    padding: var(--space-6) var(--space-5) var(--space-7);
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* corner brackets — orange hairlines */
-  .met__corner {
-    position: absolute;
-    width: 14px;
-    height: 14px;
-    border-color: var(--color-accent);
-    pointer-events: none;
-  }
-  .met__corner--tl {
-    top: 6px;
-    left: 6px;
-    border-top: 1px solid;
-    border-left: 1px solid;
-  }
-  .met__corner--tr {
-    top: 6px;
-    right: 6px;
-    border-top: 1px solid;
-    border-right: 1px solid;
-  }
-  .met__corner--bl {
-    bottom: 6px;
-    left: 6px;
-    border-bottom: 1px solid;
-    border-left: 1px solid;
-  }
-  .met__corner--br {
-    bottom: 6px;
-    right: 6px;
-    border-bottom: 1px solid;
-    border-right: 1px solid;
-  }
-
-  /* mono callouts on the edges — like dwg metadata */
-  .met__cote {
-    position: absolute;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-ink-muted);
-  }
-  .met__coteSep {
-    opacity: 0.45;
-  }
-
-  .met__cote--top {
-    top: -7px;
-    left: var(--space-6);
-    padding-inline: var(--space-2);
-    background: var(--color-bg);
-  }
-  .met__cote--bottom {
-    bottom: -7px;
-    right: var(--space-6);
-    padding-inline: var(--space-2);
-    background: var(--color-bg);
-  }
-  .met__cote--right {
-    top: 50%;
-    right: -1px;
-    transform: translateY(-50%);
-    flex-direction: column;
-    gap: 14px;
-    padding-block: var(--space-3);
-  }
-  .met__tick {
-    width: 8px;
-    height: 1px;
-    background: var(--color-primary);
-    opacity: 0.35;
-  }
-
-  .met__plateInner {
-    position: relative;
-    flex: 1;
-    display: grid;
-    place-items: center;
-    padding: var(--space-3);
-    background:
-      linear-gradient(
-        rgba(14, 61, 52, 0.025),
-        rgba(14, 61, 52, 0.025)
-      ),
-      var(--color-bg);
-    overflow: hidden;
-  }
-
-  .met__plateInner::before,
-  .met__plateInner::after {
-    content: "";
-    position: absolute;
-    pointer-events: none;
-  }
-  /* faint inner crosshair through the centre */
-  .met__plateInner::before {
-    left: 50%;
-    top: 8%;
-    bottom: 8%;
-    width: 1px;
-    background: rgba(14, 61, 52, 0.06);
-  }
-  .met__plateInner::after {
-    top: 50%;
-    left: 8%;
-    right: 8%;
-    height: 1px;
-    background: rgba(14, 61, 52, 0.06);
-  }
-
-  .met__img {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    height: auto;
-    max-height: 540px;
-    object-fit: contain;
-    mix-blend-mode: multiply;
-  }
-
-  .met__plateCaption {
-    margin-top: var(--space-4);
-    padding-top: var(--space-3);
-    border-top: 1px dashed var(--color-line);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-ink-muted);
-  }
-
-  /* ── parts list ───────────────────────────────────────── */
-  .met__parts {
-    display: flex;
-    flex-direction: column;
+    grid-auto-rows: minmax(200px, auto);
     gap: var(--space-5);
   }
 
-  .met__partsHead {
+  .met__cell {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    flex-direction: column;
     gap: var(--space-4);
-    padding-bottom: var(--space-4);
-    border-bottom: 1px solid var(--color-line);
+    padding: 0;
+    border: none;
+    background: transparent;
   }
 
-  .met__partsHeading {
-    margin: 0;
-    font-size: var(--fs-xl);
-    font-weight: 600;
-    letter-spacing: -0.02em;
+  /* ── mini cards dentro de cada celda ───────────────────── */
+  .met__cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    flex: 1;
+    justify-content: center;
+  }
+
+  .met__miniCard {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    background: var(--color-surface);
+  }
+
+  .met__miniIcon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
     color: var(--color-primary);
+    stroke-linecap: square;
+    stroke-linejoin: miter;
   }
 
-  .met__partsTag {
+  .met__miniText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .met__miniTitle {
     font-family: var(--font-mono);
     font-size: 0.7rem;
     font-weight: 500;
-    letter-spacing: 0.2em;
     text-transform: uppercase;
+    letter-spacing: 0.1em;
     color: var(--color-ink-muted);
   }
 
-  .met__partsList {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: var(--space-7);
-    row-gap: 0;
-  }
-
-  .met__part {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-4) 0;
-    border-bottom: 1px solid var(--color-line);
-    transition: padding-left 220ms var(--ease-out);
-  }
-
-  .met__part::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--color-accent);
-    transform: scaleY(0);
-    transform-origin: bottom;
-    transition: transform 220ms var(--ease-out);
-  }
-
-  .met__part:hover {
-    padding-left: var(--space-3);
-  }
-  .met__part:hover::before {
-    transform: scaleY(1);
-    transform-origin: top;
-  }
-
-  .met__partNum {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
+  .met__miniSub {
+    font-size: var(--fs-sm);
     font-weight: 500;
-    letter-spacing: 0.12em;
-    color: var(--color-ink-muted);
-    transition: color 220ms var(--ease-out);
-  }
-
-  .met__part:hover .met__partNum {
-    color: var(--color-accent);
-  }
-
-  .met__partLabel {
-    font-family: var(--font-mono);
-    font-size: 0.82rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    line-height: 1.3;
     color: var(--color-ink);
   }
 
-  .met__partLead {
-    height: 1px;
-    border-top: 1px dotted rgba(14, 61, 52, 0.28);
-    align-self: center;
+  /* última celda — ocupa las 3 columnas y 2 filas de alto */
+  .met__cell--full {
+    grid-column: 1 / -1;
+    grid-row: span 2;
+    /* sin padding/place-items: la galería ocupa toda la celda */
+    display: block;
+    padding: 0;
+    border: none;
+    background: transparent;
   }
 
-  .met__partMark {
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    color: var(--color-ink-muted);
-    opacity: 0;
-    transform: translateX(-4px);
-    transition:
-      opacity 220ms var(--ease-out),
-      transform 220ms var(--ease-out),
-      color 220ms var(--ease-out);
+  /* galería de 3 imágenes dentro de la celda grande */
+  .met__gallery {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    gap: var(--space-4);
   }
 
-  .met__part:hover .met__partMark {
-    opacity: 1;
-    transform: translateX(0);
-    color: var(--color-accent);
+  .met__galleryImg {
+    flex: 1 1 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: left left;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: 6px;
+    background: var(--color-surface);
+  }
+
+  /* la imagen central crece el doble que las laterales */
+  .met__galleryImg:nth-child(2) {
+    flex-grow: 2;
   }
 
   /* ── tablet ───────────────────────────────────────────── */
@@ -526,24 +313,11 @@ const partKeys: TranslationKey[] = [
     }
 
     .met__container {
-      gap: var(--space-7);
-    }
-
-    .met__top {
-      grid-template-columns: 1fr;
       gap: var(--space-6);
     }
 
-    .met__heading {
-      max-width: none;
-    }
-
-    .met__plate {
-      padding: var(--space-5) var(--space-4) var(--space-6);
-    }
-
-    .met__img {
-      max-height: 420px;
+    .met__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -557,38 +331,25 @@ const partKeys: TranslationKey[] = [
       font-size: clamp(1.8rem, 7vw, 2.4rem);
     }
 
-    .met__meta {
+    .met__grid {
+      grid-template-columns: 1fr;
+      grid-auto-rows: 140px;
+      gap: var(--space-4);
+    }
+
+    /* la celda grande deja de medir 2 filas fijas y la galería se apila */
+    .met__cell--full {
+      grid-row: auto;
+    }
+
+    .met__gallery {
       grid-template-columns: 1fr;
       gap: var(--space-3);
     }
 
-    .met__cote--top,
-    .met__cote--bottom {
-      font-size: 0.55rem;
-      letter-spacing: 0.16em;
-    }
-
-    .met__cote--right {
-      display: none;
-    }
-
-    .met__img {
-      max-height: 320px;
-    }
-
-    .met__partsHead {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
-    }
-
-    .met__partsList {
-      grid-template-columns: 1fr;
-    }
-
-    .met__partLabel {
-      font-size: 0.74rem;
-      letter-spacing: 0.06em;
+    .met__galleryImg {
+      height: auto;
+      aspect-ratio: 4 / 3;
     }
   }
 </style>
