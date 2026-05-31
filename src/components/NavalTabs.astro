@@ -1,0 +1,513 @@
+---
+import { resolveLang, useTranslations } from "../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+// Cada tab muestra un callout: imagen central (un blueprint) + 6 nodos
+// (3 por lado). El primero arranca activo.
+//   Tab A · Diseño & ingeniería  → diseño, cálculos físicos, modificación.
+//   Tab B · Documentación & cert. → bloque regulatorio + entregables/manuales.
+const panels = [
+  {
+    id: "naval-panel-a",
+    tabId: "naval-tab-a",
+    label: t("naval.tab.a"),
+    img: "/naval/blueprint.jpeg",
+    imgAlt: t("naval.imageAlt"),
+    nodes: [
+      { side: "left", row: 1, title: t("naval.nodeA.01.title"), desc: t("naval.nodeA.01.desc") },
+      { side: "left", row: 2, title: t("naval.nodeA.02.title"), desc: t("naval.nodeA.02.desc") },
+      { side: "left", row: 3, title: t("naval.nodeA.03.title"), desc: t("naval.nodeA.03.desc") },
+      { side: "right", row: 1, title: t("naval.nodeA.04.title"), desc: t("naval.nodeA.04.desc") },
+      { side: "right", row: 2, title: t("naval.nodeA.05.title"), desc: t("naval.nodeA.05.desc") },
+      { side: "right", row: 3, title: t("naval.nodeA.06.title"), desc: t("naval.nodeA.06.desc") },
+    ],
+  },
+  {
+    id: "naval-panel-b",
+    tabId: "naval-tab-b",
+    label: t("naval.tab.b"),
+    img: "/naval/boatblueprint.jpeg",
+    imgAlt: t("naval.imageAltB"),
+    nodes: [
+      { side: "left", row: 1, title: t("naval.nodeB.01.title"), desc: t("naval.nodeB.01.desc") },
+      { side: "left", row: 2, title: t("naval.nodeB.02.title"), desc: t("naval.nodeB.02.desc") },
+      { side: "left", row: 3, title: t("naval.nodeB.03.title"), desc: t("naval.nodeB.03.desc") },
+      { side: "right", row: 1, title: t("naval.nodeB.04.title"), desc: t("naval.nodeB.04.desc") },
+      { side: "right", row: 2, title: t("naval.nodeB.05.title"), desc: t("naval.nodeB.05.desc") },
+      { side: "right", row: 3, title: t("naval.nodeB.06.title"), desc: t("naval.nodeB.06.desc") },
+    ],
+  },
+] as const;
+
+// Los segmentos del tab derivan de los paneles.
+const tabs = panels.map((p) => ({ id: p.tabId, panel: p.id, label: p.label }));
+---
+
+<section class="naval" id="naval" aria-label={t("naval.aria")}>
+  <div class="naval__container">
+    <header class="naval__head">
+      <h2 class="naval__heading">
+        {t("naval.heading.lead")}<em class="naval__headingEmph"
+          >{t("naval.heading.emph")}</em
+        >{t("naval.heading.tail")}
+      </h2>
+
+      <p class="naval__lead">{t("naval.lead")}</p>
+    </header>
+
+    <!-- Tab: botón grande full-width partido en dos segmentos.
+         Voz de control técnico (mono uppercase, hairline). -->
+    <div class="naval__tabs" role="tablist" aria-label={t("naval.tab.aria")}>
+      {
+        tabs.map((tab, i) => (
+          <button
+            type="button"
+            class:list={["naval__tab", { "is-active": i === 0 }]}
+            id={tab.id}
+            role="tab"
+            aria-selected={i === 0 ? "true" : "false"}
+            aria-controls={tab.panel}
+            tabindex={i === 0 ? "0" : "-1"}
+            data-naval-tab
+            data-panel={tab.panel}
+          >
+            <span class="naval__tabIndex">{String(i + 1).padStart(2, "0")}</span>
+            <span class="naval__tabLabel">{tab.label}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <!-- Contenido central. Cada panel es un callout: imagen + 6 nodos. -->
+    <div class="naval__panels">
+      {
+        panels.map((panel, p) => (
+          <div
+            class:list={["naval__panel", { "is-active": p === 0 }]}
+            id={panel.id}
+            role="tabpanel"
+            aria-labelledby={panel.tabId}
+            data-naval-panel
+          >
+            <div class="naval__map">
+              {panel.nodes.map((node, i) => (
+                <div
+                  class:list={["naval__node", `naval__node--${node.side}`]}
+                  style={`grid-column:${node.side === "left" ? 1 : 3};grid-row:${node.row}`}
+                >
+                  <span class="naval__nodeNum" aria-hidden="true">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span class="naval__nodeTitle">{node.title}</span>
+                  <span class="naval__nodeDesc">{node.desc}</span>
+                </div>
+              ))}
+
+              <figure class="naval__mapImg">
+                <img
+                  src={panel.img}
+                  alt={panel.imgAlt}
+                  loading="lazy"
+                  decoding="async"
+                  width="1200"
+                  height="900"
+                />
+              </figure>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<script>
+  // Toggle del tab: muestra el panel asociado y mueve el foco/estado.
+  const sections = document.querySelectorAll<HTMLElement>(".naval");
+
+  sections.forEach((section) => {
+    const tabs = Array.from(
+      section.querySelectorAll<HTMLButtonElement>("[data-naval-tab]"),
+    );
+    const panels = Array.from(
+      section.querySelectorAll<HTMLElement>("[data-naval-panel]"),
+    );
+
+    const activate = (next: HTMLButtonElement) => {
+      tabs.forEach((tab) => {
+        const selected = tab === next;
+        tab.classList.toggle("is-active", selected);
+        tab.setAttribute("aria-selected", selected ? "true" : "false");
+        tab.tabIndex = selected ? 0 : -1;
+      });
+      panels.forEach((panel) => {
+        panel.classList.toggle("is-active", panel.id === next.dataset.panel);
+      });
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => activate(tab));
+      tab.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const dir = e.key === "ArrowRight" ? 1 : -1;
+        const nextTab = tabs[(i + dir + tabs.length) % tabs.length];
+        nextTab.focus();
+        activate(nextTab);
+      });
+    });
+  });
+</script>
+
+<style>
+  .naval {
+    position: relative;
+    isolation: isolate;
+    min-height: 90svh;
+    padding: var(--space-8) 0;
+    display: flex;
+    align-items: center;
+    background-color: var(--color-primary-deep);
+    color: var(--color-bg);
+    overflow: hidden;
+  }
+
+  /* hairline grid en claro-sobre-oscuro — mismo grafismo que Naval/Metalurgia */
+  .naval::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(245, 242, 236, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(245, 242, 236, 0.05) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 10%,
+      #000 90%,
+      transparent 100%
+    );
+  }
+
+  .naval__container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-7);
+  }
+
+  /* ── heading ──────────────────────────────────────────── */
+  .naval__head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .naval__eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .naval__heading {
+    margin: 0;
+    font-size: clamp(2.1rem, 1.3rem + 2.4vw, 3.4rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    color: #fff;
+    text-align: end;
+    /* max-width: 18ch; */
+  }
+
+  .naval__headingEmph {
+    font-family: var(--font-display), serif;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--color-accent);
+  }
+
+  .naval__lead {
+    margin: 0;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: rgba(245, 242, 236, 0.72);
+    /* max-width: 48ch; */
+    text-align: end;
+  }
+
+  /* ── tab: dos segmentos, ancho del container ──────────── */
+  .naval__tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid rgba(245, 242, 236, 0.18);
+  }
+
+  .naval__tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-4);
+    background: transparent;
+    color: rgba(245, 242, 236, 0.6);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      color 0.2s var(--ease-out),
+      background-color 0.2s var(--ease-out);
+  }
+
+  /* hairline separador entre los dos segmentos */
+  .naval__tab + .naval__tab {
+    border-left: 1px solid rgba(245, 242, 236, 0.18);
+  }
+
+  .naval__tab:hover {
+    color: var(--color-bg);
+  }
+
+  .naval__tab.is-active {
+    color: #fff;
+    background-color: rgba(217, 132, 42, 0.12);
+  }
+
+  /* el índice mono delata el segmento activo en naranja */
+  .naval__tabIndex {
+    font-size: 0.72rem;
+    color: rgba(245, 242, 236, 0.4);
+    transition: color 0.2s var(--ease-out);
+  }
+
+  .naval__tab.is-active .naval__tabIndex {
+    color: var(--color-accent);
+  }
+
+  .naval__tab:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  /* ── panels ───────────────────────────────────────────── */
+  /* Los dos paneles se apilan en la misma celda: el contenedor toma
+     el alto del más grande, así la altura no cambia al cambiar de tab. */
+  .naval__panels {
+    display: grid;
+  }
+
+  .naval__panel {
+    grid-area: 1 / 1;
+    min-height: 240px;
+    opacity: 0;
+    visibility: hidden;
+    /* fade-out: opacidad animada; visibility espera a que termine.
+       fade-in (.is-active): visibility inmediata y opacidad sube. */
+    transition:
+      opacity 0.3s var(--ease-out),
+      visibility 0s linear 0.3s;
+  }
+
+  .naval__panel.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity 0.3s var(--ease-out),
+      visibility 0s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .naval__panel {
+      transition: none;
+    }
+  }
+
+  /* ── callout: imagen central + nodos con leaders ──────── */
+  .naval__map {
+    --leader-gap: var(--space-8); /* ancho del gutter = largo de la branch */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);
+    /* Alto de fila FIJO (no depende del contenido) → ambos tabs miden
+       igual y la imagen no cambia de tamaño al cambiar de panel. */
+    grid-template-rows: repeat(3, clamp(120px, 15vh, 160px));
+    column-gap: var(--leader-gap);
+    row-gap: var(--space-5);
+    align-items: center;
+  }
+
+  /* imagen central — ocupa la columna del medio, las 3 filas */
+  .naval__mapImg {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1 / -1;
+    margin: 0;
+    align-self: stretch;
+    border: 1px solid rgba(245, 242, 236, 0.18);
+    background: var(--color-primary-deep);
+    overflow: hidden;
+  }
+
+  .naval__mapImg img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* contain: el plano entra completo, sin recorte. El sobrante queda
+       como letterbox sobre el fondo (plancha de plano). */
+    object-fit: contain;
+    padding: var(--space-3);
+  }
+
+  /* rail vertical: barra colectora donde aterrizan las branches.
+     Corre por el borde de la imagen, del centro de la fila 1 al de la 3. */
+  .naval__mapImg::before,
+  .naval__mapImg::after {
+    content: "";
+    position: absolute;
+    top: 16.66%;
+    bottom: 16.66%;
+    width: 1px;
+    background: rgba(245, 242, 236, 0.28);
+  }
+  .naval__mapImg::before {
+    left: 0;
+  }
+  .naval__mapImg::after {
+    right: 0;
+  }
+
+  /* ── nodos (cajas de info) ────────────────────────────── */
+  .naval__node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: 1px solid rgba(245, 242, 236, 0.18);
+    background: rgba(245, 242, 236, 0.03);
+  }
+
+  .naval__nodeNum {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    color: var(--color-accent);
+  }
+
+  .naval__nodeTitle {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    color: #fff;
+  }
+
+  .naval__nodeDesc {
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: rgba(245, 242, 236, 0.6);
+  }
+
+  /* branch horizontal: hairline del borde de la caja al rail */
+  .naval__node::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: var(--leader-gap);
+    height: 1px;
+    background: rgba(245, 242, 236, 0.28);
+  }
+  .naval__node--left::after {
+    left: 100%;
+  }
+  .naval__node--right::after {
+    right: 100%;
+  }
+
+  /* nodo: cuadrito en el empalme branch↔rail (lado imagen) */
+  .naval__node::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin-top: -2px;
+    background: var(--color-accent);
+    z-index: 1;
+  }
+  .naval__node--left::before {
+    left: calc(100% + var(--leader-gap) - 2px);
+  }
+  .naval__node--right::before {
+    right: calc(100% + var(--leader-gap) - 2px);
+  }
+
+  /* ── tablet: el callout se aprieta, achicamos el gutter ─ */
+  @media (max-width: 960px) {
+    .naval__map {
+      --leader-gap: var(--space-6);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+    }
+  }
+
+  /* ── mobile ───────────────────────────────────────────── */
+  @media (max-width: 640px) {
+    .naval {
+      padding: var(--space-7) 0;
+    }
+
+    .naval__heading {
+      font-size: clamp(1.8rem, 7vw, 2.4rem);
+    }
+
+    .naval__tab {
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-3);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-align: center;
+    }
+
+    /* callout colapsa a 1 columna: imagen arriba, cajas apiladas */
+    .naval__map {
+      grid-template-columns: 1fr;
+      grid-template-rows: none;
+      column-gap: 0;
+      row-gap: var(--space-4);
+    }
+
+    .naval__mapImg {
+      grid-column: 1;
+      grid-row: auto;
+      order: -1;
+      aspect-ratio: 16 / 10;
+    }
+
+    /* sin leaders ni rails en vertical */
+    .naval__node {
+      grid-column: 1 !important;
+      grid-row: auto !important;
+    }
+    .naval__node::before,
+    .naval__node::after,
+    .naval__mapImg::before,
+    .naval__mapImg::after {
+      content: none;
+    }
+  }
+</style>
