@@ -13,22 +13,8 @@ const t = useTranslations(lang);
 
     <div class="about__bento">
       <article class="about__cell about__cell--intro">
-        <h2 class="about__heading">{t("about.heading")}</h2>
-        <p class="about__lead">{t("about.lead")}</p>
-      </article>
-
-      <article class="about__cell about__cell--founders">
-        <img
-          class="about__foundersImg"
-          src="/about/equipo.png"
-          alt={t("about.founders.label")}
-          loading="lazy"
-          decoding="async"
-        />
-        <div class="about__foundersFoot">
-          <span class="about__foundersLabel">{t("about.founders.label")}</span>
-          <span class="about__foundersCaption">{t("about.founders.caption")}</span>
-        </div>
+        <h2 class="about__lead">{t("about.heading")}</h2>
+        <!-- <p class="about__lead">{t("about.lead")}</p> -->
       </article>
 
       <article class="about__cell about__cell--mission">
@@ -41,7 +27,11 @@ const t = useTranslations(lang);
         <p class="about__cellBody">{t("about.vision.body")}</p>
       </article>
 
-      <dl class="about__cell about__cell--meta">
+      <article class="about__cell about__cell--img">
+        <img src="/about/equipo.jpg" alt="imagen de prueba">
+      </article>
+
+      <!-- <dl class="about__cell about__cell--meta">
         <div class="about__metaItem">
           <dt>{t("about.meta.base")}</dt>
           <dd>{t("about.meta.baseValue")}</dd>
@@ -50,7 +40,7 @@ const t = useTranslations(lang);
           <dt>{t("about.meta.scope")}</dt>
           <dd>{t("about.meta.scopeValue")}</dd>
         </div>
-      </dl>
+      </dl> -->
     </div>
   </div>
 </section>
@@ -88,9 +78,9 @@ const t = useTranslations(lang);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
-      "intro intro founders"
-      "mission vision founders"
-      "meta meta meta";
+      "intro   intro   image"
+      "intro   intro   image"
+      "mission vision  image";
     gap: 1px;
     background: var(--color-line);
     border: 1px solid var(--color-line);
@@ -104,6 +94,8 @@ const t = useTranslations(lang);
   }
 
   /* ── intro cell (heading + lead) ──────────────────────── */
+
+
   .about__cell--intro {
     grid-area: intro;
     background: var(--color-bg);
@@ -136,54 +128,10 @@ const t = useTranslations(lang);
 
   .about__lead {
     margin: 0;
-    font-size: var(--fs-md);
+    font-size: var(--fs-lg);
     line-height: 1.6;
     color: var(--color-ink-muted);
     max-width: 60ch;
-  }
-
-  /* ── founders cell (photo) ────────────────────────────── */
-  .about__cell--founders {
-    grid-area: founders;
-    overflow: hidden;
-    background-color: var(--color-primary);
-    color: var(--color-bg);
-    display: grid;
-    grid-template-rows: 1fr auto;
-    min-height: 360px;
-    padding: 0;
-  }
-
-  .about__foundersImg {
-    display: block;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    object-fit: cover;
-    object-position: center 20%;
-  }
-
-  .about__foundersFoot {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-5) var(--space-6);
-    border-top: 1px solid rgba(245, 242, 236, 0.18);
-  }
-
-  .about__foundersLabel {
-    font-family: var(--font-mono);
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-accent-soft);
-  }
-
-  .about__foundersCaption {
-    font-size: var(--fs-sm);
-    line-height: 1.4;
-    color: rgba(245, 242, 236, 0.7);
   }
 
   /* ── mission / vision cells ───────────────────────────── */
@@ -193,6 +141,21 @@ const t = useTranslations(lang);
 
   .about__cell--vision {
     grid-area: vision;
+  }
+
+  .about__cell--img {
+    grid-area: image;
+    /* min-height: 100%; */
+    min-height: 700px;
+    padding: var(--space-2);
+    display: grid;
+    place-items: center;
+    > img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 45% center;
+    }
   }
 
   .about__cell--mission::before,
@@ -280,17 +243,12 @@ const t = useTranslations(lang);
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-areas:
         "intro intro"
-        "founders founders"
         "mission vision"
         "meta meta";
     }
 
     .about__cell {
       padding: var(--space-5);
-    }
-
-    .about__cell--founders {
-      min-height: 240px;
     }
 
     .about__heading {
@@ -312,7 +270,6 @@ const t = useTranslations(lang);
       grid-template-columns: 1fr;
       grid-template-areas:
         "intro"
-        "founders"
         "mission"
         "vision"
         "meta";
@@ -324,10 +281,6 @@ const t = useTranslations(lang);
 
     .about__cell--intro {
       padding-block: var(--space-5);
-    }
-
-    .about__cell--founders {
-      min-height: 200px;
     }
 
     .about__heading {

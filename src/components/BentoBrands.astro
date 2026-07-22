@@ -1,4 +1,9 @@
 ---
+
+import { resolveLang, useTranslations } from "../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
 // BentoBrands — andamio de cuadrícula para experimentar con el layout.
 // Grid de 9 filas × 3 columnas. La primera card ocupa el bloque 2×2
 // (cuadros 01, 02, 04, 05 = columnas 1–2, filas 1–2).
@@ -12,12 +17,12 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
 );
 ---
 
-<section class="bento" aria-label="BentoBrands (work in progress)">
+<section class="bento" aria-label={t("bento.section.ariaLabel")}>
   <div class="bento__layout">
     <div class="bento__grid">
       <div class="bento__card bento__card--lead">
         <p class="bento__cardText">
-          Especialistas a tu lado en cada decisión de compra
+          {t("bento.lead.text")}
         </p>
       </div>
       <div class="bento__card bento__card--logo">
@@ -28,9 +33,9 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           loading="lazy"
           decoding="async"
         />
-        <span class="bento__brandCaption">Líder mundial en lubricantes</span>
-        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de TotalEnergies">
-          <span>Ver catálogo</span>
+        <span class="bento__brandCaption">{t("bento.brand.totalenergies.caption")}</span>
+        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.totalenergies.ariaLabel")}>
+          <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>
       </div>
@@ -42,9 +47,9 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           loading="lazy"
           decoding="async"
         />
-        <span class="bento__brandCaption">Protección contra sobretensiones</span>
-        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de Current Technology">
-          <span>Ver catálogo</span>
+        <span class="bento__brandCaption">{t("bento.brand.currentTechnology.caption")}</span>
+        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.currentTechnology.ariaLabel")}>
+          <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>
       </div>
@@ -56,9 +61,9 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           loading="lazy"
           decoding="async"
         />
-        <span class="bento__brandCaption">Química técnica industrial</span>
-        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de Qer">
-          <span>Ver catálogo</span>
+        <span class="bento__brandCaption">{t("bento.brand.qer.caption")}</span>
+        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.qer.ariaLabel")}>
+          <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>
       </div>
@@ -70,9 +75,9 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           loading="lazy"
           decoding="async"
         />
-        <span class="bento__brandCaption">Alumbrado solar autónomo</span>
-        <a class="bento__brandLink" href="#" aria-label="Ver catálogo de Fonroche Lighting America">
-          <span>Ver catálogo</span>
+        <span class="bento__brandCaption">{t("bento.brand.fonroche.caption")}</span>
+        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.fonroche.ariaLabel")}>
+          <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>
       </div>
@@ -80,7 +85,7 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
         <img
           class="bento__shakeImg"
           src="/handshake2.jpeg"
-          alt="Apretón de manos cerrando un acuerdo"
+          alt={t("bento.shake.alt")}
           loading="lazy"
           decoding="async"
         />
@@ -89,13 +94,13 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
         <img
           class="bento__photo"
           src="/asset-bento1.jpeg"
-          alt="Equipo de Envero trabajando en conjunto"
+          alt={t("bento.photo.alt")}
           loading="lazy"
           decoding="async"
         />
         <div class="bento__photoText">
-          <span class="bento__photoEyebrow">Equipo</span>
-          <p class="bento__photoTitle">Trabajando mano a mano contigo</p>
+          <span class="bento__photoEyebrow">{t("bento.photo.eyebrow")}</span>
+          <p class="bento__photoTitle">{t("bento.photo.title")}</p>
         </div>
       </div>
       {cells.map((n) => (
