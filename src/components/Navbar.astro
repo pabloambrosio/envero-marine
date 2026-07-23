@@ -34,14 +34,10 @@ const links: Array<{ key: TranslationKey; href: string }> = [
 
     <div class="nav__end">
       <LangToggle />
-      <button
-        type="button"
-        class="btn btn--primary nav__cta"
-        data-open-modal="appointment"
-      >
+      <a href="/contact" class="btn btn--primary nav__cta">
         <span>{t("nav.cta")}</span>
         <span class="btn__arrow" aria-hidden="true">→</span>
-      </button>
+      </a>
     </div>
   </div>
 </header>

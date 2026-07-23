@@ -1,24 +1,17 @@
 ---
 import { Font } from "astro:assets";
 import { resolveLang, useTranslations } from "../i18n/utils";
-import Modal from "../components/Modal.astro";
-import AppointmentWizard from "../components/appointment/AppointmentWizard.astro";
 import "../styles/global.css";
 
 interface Props {
   title?: string;
   description?: string;
-  hideAppointmentModal?: boolean;
 }
 
 const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
 
-const {
-  title = t("meta.title"),
-  description = t("meta.description"),
-  hideAppointmentModal = false,
-} = Astro.props;
+const { title = t("meta.title"), description = t("meta.description") } = Astro.props;
 ---
 
 <!doctype html>
@@ -43,10 +36,5 @@ const {
   </head>
   <body>
     <slot />
-    {!hideAppointmentModal && (
-      <Modal id="appointment" title={t("wizard.modal.title")}>
-        <AppointmentWizard />
-      </Modal>
-    )}
   </body>
 </html>
