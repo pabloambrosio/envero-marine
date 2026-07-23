@@ -1,0 +1,88 @@
+---
+export const prerender = true;
+
+import Layout from "../../layouts/Layout.astro";
+import Navbar from "../../components/Navbar.astro";
+import Footer from "../../components/Footer.astro";
+import AppointmentWizard from "../../components/appointment/AppointmentWizard";
+import type { AppointmentWizardLabels } from "../../components/appointment/types";
+import { resolveLang, useTranslations } from "../../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const wizardLabels: AppointmentWizardLabels = {
+  intro: t("wizard.schedule.intro"),
+  weekdays: [
+    t("wizard.schedule.weekday.mon"),
+    t("wizard.schedule.weekday.tue"),
+    t("wizard.schedule.weekday.wed"),
+    t("wizard.schedule.weekday.thu"),
+    t("wizard.schedule.weekday.fri"),
+    t("wizard.schedule.weekday.sat"),
+    t("wizard.schedule.weekday.sun"),
+  ],
+  calMonthPrev: t("wizard.schedule.calMonthPrev"),
+  calMonthNext: t("wizard.schedule.calMonthNext"),
+  calGridAria: t("wizard.schedule.calGridAria"),
+  slotsForDay: t("wizard.schedule.slotsForDay"),
+  slotsAria: t("wizard.schedule.slotsAria"),
+  pickDay: t("wizard.schedule.pickDay"),
+};
+---
+
+<Layout title={t("wizard.modal.title")} hideAppointmentModal>
+  <Navbar />
+  <main>
+    <section class="contactPage" aria-label={t("wizard.modal.title")}>
+      <div class="container">
+        <header class="contactPage__head">
+          <span class="contactPage__eyebrow">{t("contact.eyebrow")}</span>
+          <h1 class="contactPage__heading">{t("wizard.modal.title")}</h1>
+        </header>
+
+        <AppointmentWizard lang={lang} labels={wizardLabels} client:load />
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<style>
+  .contactPage {
+    padding-block-start: calc(var(--header-height) + var(--space-8));
+    padding-block-end: var(--space-8);
+  }
+
+  .contactPage__head {
+    margin-bottom: var(--space-6);
+  }
+
+  .contactPage__eyebrow {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: var(--space-3);
+  }
+
+  .contactPage__heading {
+    margin: 0;
+    font-size: var(--fs-2xl);
+    line-height: 1.15;
+    color: var(--color-ink);
+  }
+
+  @media (max-width: 640px) {
+    .contactPage {
+      padding-block-start: calc(var(--header-height) + var(--space-6));
+    }
+
+    .contactPage__heading {
+      font-size: var(--fs-xl);
+    }
+  }
+</style>

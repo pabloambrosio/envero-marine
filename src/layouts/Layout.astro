@@ -8,12 +8,17 @@ import "../styles/global.css";
 interface Props {
   title?: string;
   description?: string;
+  hideAppointmentModal?: boolean;
 }
 
 const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
 
-const { title = t("meta.title"), description = t("meta.description") } = Astro.props;
+const {
+  title = t("meta.title"),
+  description = t("meta.description"),
+  hideAppointmentModal = false,
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -38,8 +43,10 @@ const { title = t("meta.title"), description = t("meta.description") } = Astro.p
   </head>
   <body>
     <slot />
-    <Modal id="appointment" title={t("wizard.modal.title")}>
-      <AppointmentWizard />
-    </Modal>
+    {!hideAppointmentModal && (
+      <Modal id="appointment" title={t("wizard.modal.title")}>
+        <AppointmentWizard />
+      </Modal>
+    )}
   </body>
 </html>
