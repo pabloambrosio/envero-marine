@@ -243,7 +243,7 @@ export const ui = {
     "wizard.schedule.pickDay": "Elige un día para ver los horarios.",
     "wizard.schedule.noSlot": "Sin horarios disponibles",
     "wizard.contact.intro":
-      "Necesitamos al menos un email o un teléfono para confirmarte la cita.",
+      "Necesitamos tu teléfono para confirmarte la cita. El email es opcional.",
     "wizard.contact.field.name": "Nombre",
     "wizard.contact.field.email": "Email",
     "wizard.contact.field.phone": "Teléfono",
@@ -252,6 +252,7 @@ export const ui = {
     "wizard.contact.error.nameRequired": "El nombre es obligatorio.",
     "wizard.contact.error.contactRequired":
       "Indica al menos un email o un teléfono.",
+    "wizard.contact.error.phoneRequired": "El teléfono es obligatorio.",
     "wizard.contact.error.emailInvalid": "Email no válido.",
     "wizard.confirm.intro": "Revisa los datos antes de enviar.",
     "wizard.confirm.field.notes": "Notas para el equipo",
@@ -518,7 +519,7 @@ export const ui = {
     "wizard.schedule.pickDay": "Pick a day to see the available times.",
     "wizard.schedule.noSlot": "No times available",
     "wizard.contact.intro":
-      "We need at least an email or a phone number to confirm your appointment.",
+      "We need your phone number to confirm your appointment. Email is optional.",
     "wizard.contact.field.name": "Name",
     "wizard.contact.field.email": "Email",
     "wizard.contact.field.phone": "Phone",
@@ -527,6 +528,7 @@ export const ui = {
     "wizard.contact.error.nameRequired": "Name is required.",
     "wizard.contact.error.contactRequired":
       "Provide at least an email or a phone.",
+    "wizard.contact.error.phoneRequired": "Phone is required.",
     "wizard.contact.error.emailInvalid": "Invalid email.",
     "wizard.confirm.intro": "Review the details before sending.",
     "wizard.confirm.field.notes": "Notes for the team",

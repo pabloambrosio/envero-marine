@@ -15,6 +15,7 @@ interface AppAppointment {
   id: string;
   appointment_date: string;
   status: AppointmentStatus;
+  company_name: string | null;
   notes: string | null;
 }
 
@@ -156,6 +157,23 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
           </div>
 
           <div class="adminForm__field">
+            <label class="adminForm__label" for="appointment-company">
+              <span class="adminForm__labelText">Empresa</span>
+              <span class="adminForm__hint">Opcional</span>
+            </label>
+            <input
+              class="adminForm__input"
+              type="text"
+              name="company_name"
+              id="appointment-company"
+              autocomplete="organization"
+              value={appointment.company_name ?? ""}
+              data-form-input="company_name"
+            />
+            <span class="adminForm__fieldError" data-form-error="company_name" />
+          </div>
+
+          <div class="adminForm__field">
             <label class="adminForm__label" for="appointment-notes">
               <span class="adminForm__labelText">Notas</span>
               <span class="adminForm__hint">Opcional</span>
@@ -253,10 +271,12 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
 
       const data = new FormData(form);
       const notesRaw = String(data.get("notes") ?? "").trim();
+      const companyNameRaw = String(data.get("company_name") ?? "").trim();
 
       const payload = {
         status: String(data.get("status") ?? "pending"),
         appointment_date: String(data.get("appointment_date") ?? ""),
+        company_name: companyNameRaw === "" ? null : companyNameRaw,
         notes: notesRaw === "" ? null : notesRaw,
       };
 

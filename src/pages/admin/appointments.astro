@@ -12,7 +12,7 @@ type AppointmentStatus = "pending" | "confirmed" | "cancelled";
 interface AppAppointment {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string;
   appointment_date: string;
   status: AppointmentStatus;
@@ -108,7 +108,7 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
                   </td>
                   <td>{a.name}</td>
                   <td class="is-mono is-muted">
-                    {a.email} · {a.phone}
+                    {a.email ? `${a.email} · ${a.phone}` : a.phone}
                   </td>
                   <td>
                     <span class:list={["badge", STATUS_BADGE[a.status]]}>

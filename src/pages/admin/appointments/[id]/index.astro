@@ -15,8 +15,9 @@ type AppointmentStatus = "pending" | "confirmed" | "cancelled";
 interface AppAppointment {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   phone: string;
+  company_name: string | null;
   appointment_date: string;
   status: AppointmentStatus;
   notes: string | null;
@@ -125,13 +126,20 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
               <dd class="quizDetail__value">
                 <div class="clientCard">
                   <span class="clientCard__name">{appointment.name}</span>
+                  {appointment.company_name && (
+                    <span class="clientCard__company">
+                      {appointment.company_name}
+                    </span>
+                  )}
                   <div class="clientCard__contacts">
-                    <a
-                      class="clientCard__contact"
-                      href={`mailto:${appointment.email}`}
-                    >
-                      {appointment.email}
-                    </a>
+                    {appointment.email && (
+                      <a
+                        class="clientCard__contact"
+                        href={`mailto:${appointment.email}`}
+                      >
+                        {appointment.email}
+                      </a>
+                    )}
                     <a
                       class="clientCard__contact"
                       href={`tel:${appointment.phone}`}
@@ -241,6 +249,12 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
   .clientCard__name {
     font-size: var(--fs-sm);
     color: var(--color-ink);
+    line-height: 1.4;
+  }
+
+  .clientCard__company {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
     line-height: 1.4;
   }
 

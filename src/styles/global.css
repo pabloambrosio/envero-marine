@@ -96,6 +96,15 @@ p {
   transform: translateX(3px);
 }
 
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover .btn__arrow {
+  transform: none;
+}
+
 .btn--primary {
   background-color: var(--color-accent);
   color: #fff;
@@ -105,6 +114,11 @@ p {
 .btn--primary:hover {
   background-color: var(--color-accent-soft);
   border-color: var(--color-accent-soft);
+}
+
+.btn--primary:disabled:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .btn--ghost {

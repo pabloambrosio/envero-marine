@@ -42,7 +42,7 @@ if (!guard.ok) return guard.redirect;
       <div class="adminForm__field">
         <label class="adminForm__label" for="appointment-email">
           <span class="adminForm__labelText">Email</span>
-          <span class="adminForm__labelReq" aria-hidden="true">*</span>
+          <span class="adminForm__hint">Opcional</span>
         </label>
         <input
           class="adminForm__input"
@@ -50,7 +50,6 @@ if (!guard.ok) return guard.redirect;
           name="email"
           id="appointment-email"
           autocomplete="email"
-          required
           data-form-input="email"
         />
         <span class="adminForm__fieldError" data-form-error="email"></span>
@@ -71,6 +70,22 @@ if (!guard.ok) return guard.redirect;
           data-form-input="phone"
         />
         <span class="adminForm__fieldError" data-form-error="phone"></span>
+      </div>
+
+      <div class="adminForm__field">
+        <label class="adminForm__label" for="appointment-company">
+          <span class="adminForm__labelText">Empresa</span>
+          <span class="adminForm__hint">Opcional</span>
+        </label>
+        <input
+          class="adminForm__input"
+          type="text"
+          name="company_name"
+          id="appointment-company"
+          autocomplete="organization"
+          data-form-input="company_name"
+        />
+        <span class="adminForm__fieldError" data-form-error="company_name"></span>
       </div>
 
       <div class="adminForm__section adminForm__section--divider">
@@ -202,14 +217,17 @@ if (!guard.ok) return guard.redirect;
 
       const data = new FormData(form);
       const notesRaw = String(data.get("notes") ?? "").trim();
+      const companyNameRaw = String(data.get("company_name") ?? "").trim();
+      const emailRaw = String(data.get("email") ?? "").trim();
 
       const payload: Record<string, unknown> = {
         name: String(data.get("name") ?? "").trim(),
-        email: String(data.get("email") ?? "").trim(),
         phone: String(data.get("phone") ?? "").trim(),
         appointment_date: String(data.get("appointment_date") ?? "").trim(),
         status: String(data.get("status") ?? "pending"),
       };
+      if (emailRaw) payload.email = emailRaw;
+      if (companyNameRaw) payload.company_name = companyNameRaw;
       if (notesRaw) payload.notes = notesRaw;
 
       if (!submit || !submitLabel) return;

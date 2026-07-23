@@ -7,16 +7,17 @@ import type { AppAppointment } from "./appointment";
 //     (`appointment_anon_insert` exige `status = 'pending'`), pero el schema
 //     lo bloquea acá para devolver un 400 limpio en lugar de un error
 //     críptico de Postgres.
-//   * `name`/`email`/`phone` van directo en `appointment` — no hay tabla
-//     `client` separada.
+//   * `name`/`email`/`phone`/`company_name` van directo en `appointment` —
+//     no hay tabla `client` separada.
 //   * `appointment_date` se valida con la misma regla de slot que definía
 //     la DB antes (lunes-viernes, 08:00-17:00 en `America/Merida`, hora en
 //     punto) — hoy es solo validación de request/front, no hay CHECK en DB.
 
 export const RequestAppointmentSchema = z.object({
   name: z.string().min(1),
-  email: z.email(),
+  email: z.email().optional(),
   phone: z.string().min(1),
+  company_name: z.string().optional(),
   appointment_date: z
     .string()
     .min(1)

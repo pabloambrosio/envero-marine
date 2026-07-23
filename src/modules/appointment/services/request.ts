@@ -16,10 +16,13 @@ export async function requestAppointment(
   const apptResult = await createAppointment(
     {
       name: input.name,
-      email: input.email,
       phone: input.phone,
       appointment_date: input.appointment_date,
       status: "pending",
+      ...(input.email !== undefined ? { email: input.email } : {}),
+      ...(input.company_name !== undefined
+        ? { company_name: input.company_name }
+        : {}),
       ...(input.notes !== undefined ? { notes: input.notes } : {}),
     },
     supabase,
