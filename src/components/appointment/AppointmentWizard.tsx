@@ -7,9 +7,12 @@ import type { AppointmentWizardLabels } from "./types";
 import CalendarGrid from "./CalendarGrid";
 import SlotPicker from "./SlotPicker";
 import StepIndicator, { type WizardStep } from "./StepIndicator";
+import StepSlider from "./StepSlider";
 import ContactStep from "./ContactStep";
 import ConfirmStep from "./ConfirmStep";
 import SuccessPanel from "./SuccessPanel";
+
+const STEP_ORDER: WizardStep[] = ["schedule", "contact", "confirm"];
 
 interface AppointmentWizardProps {
   lang: string;
@@ -116,75 +119,74 @@ export default function AppointmentWizard({ lang, labels }: AppointmentWizardPro
         }}
       />
 
-      {step === "schedule" && (
-        <>
-          <p className={styles.wizard__intro}>{labels.intro}</p>
+      <StepSlider
+        activeIndex={STEP_ORDER.indexOf(step)}
+        panels={[
+          <>
+            <p className={styles.wizard__intro}>{labels.intro}</p>
 
-          <div className={styles.wizard__panels}>
-            <CalendarGrid
-              lang={lang}
-              viewDate={calendar.viewDate}
-              days={calendar.days}
-              isPrevDisabled={calendar.isPrevDisabled}
-              weekdayLabels={labels.weekdays}
-              prevLabel={labels.calMonthPrev}
-              nextLabel={labels.calMonthNext}
-              gridAriaLabel={labels.calGridAria}
-              onPrev={calendar.goPrevMonth}
-              onNext={calendar.goNextMonth}
-              onSelectDay={calendar.selectDay}
-            />
+            <div className={styles.wizard__panels}>
+              <CalendarGrid
+                lang={lang}
+                viewDate={calendar.viewDate}
+                days={calendar.days}
+                isPrevDisabled={calendar.isPrevDisabled}
+                weekdayLabels={labels.weekdays}
+                prevLabel={labels.calMonthPrev}
+                nextLabel={labels.calMonthNext}
+                gridAriaLabel={labels.calGridAria}
+                onPrev={calendar.goPrevMonth}
+                onNext={calendar.goNextMonth}
+                onSelectDay={calendar.selectDay}
+              />
 
-            <SlotPicker
+              <SlotPicker
+                lang={lang}
+                selectedDate={calendar.selectedDate}
+                selectedSlot={calendar.selectedSlot}
+                slotHours={calendar.slotHours}
+                slotsForDayLabel={labels.slotsForDay}
+                slotsAriaLabel={labels.slotsAria}
+                pickDayLabel={labels.pickDay}
+                onSelectSlot={calendar.selectSlot}
+              />
+            </div>
+
+            <div className={styles.aptForm__actions}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                disabled={!canContinueSchedule}
+                onClick={goToContact}
+              >
+                <span>{labels.buttonNext}</span>
+                <span className="btn__arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </>,
+          <ContactStep
+            labels={labels}
+            fields={contact.fields}
+            errors={contact.errors}
+            onChange={contact.setField}
+            onBack={() => setStep("schedule")}
+            onNext={goToConfirm}
+          />,
+          calendar.selectedDate && calendar.selectedSlot !== null ? (
+            <ConfirmStep
               lang={lang}
+              labels={labels}
               selectedDate={calendar.selectedDate}
               selectedSlot={calendar.selectedSlot}
-              slotHours={calendar.slotHours}
-              slotsForDayLabel={labels.slotsForDay}
-              slotsAriaLabel={labels.slotsAria}
-              pickDayLabel={labels.pickDay}
-              onSelectSlot={calendar.selectSlot}
+              fields={contact.fields}
+              submitting={submitting}
+              errorMessage={errorMessage}
+              onBack={() => setStep("contact")}
+              onSubmit={submit}
             />
-          </div>
-
-          <div className={styles.aptForm__actions}>
-            <button
-              type="button"
-              className="btn btn--primary"
-              disabled={!canContinueSchedule}
-              onClick={goToContact}
-            >
-              <span>{labels.buttonNext}</span>
-              <span className="btn__arrow" aria-hidden="true">→</span>
-            </button>
-          </div>
-        </>
-      )}
-
-      {step === "contact" && (
-        <ContactStep
-          labels={labels}
-          fields={contact.fields}
-          errors={contact.errors}
-          onChange={contact.setField}
-          onBack={() => setStep("schedule")}
-          onNext={goToConfirm}
-        />
-      )}
-
-      {step === "confirm" && calendar.selectedDate && calendar.selectedSlot !== null && (
-        <ConfirmStep
-          lang={lang}
-          labels={labels}
-          selectedDate={calendar.selectedDate}
-          selectedSlot={calendar.selectedSlot}
-          fields={contact.fields}
-          submitting={submitting}
-          errorMessage={errorMessage}
-          onBack={() => setStep("contact")}
-          onSubmit={submit}
-        />
-      )}
+          ) : null,
+        ]}
+      />
     </div>
   );
 }

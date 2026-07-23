@@ -291,6 +291,36 @@
   color: var(--color-primary);
 }
 
+/* ── Step slider ───────────────────────────────────────────────── */
+.aptSlider {
+  overflow: hidden;
+  transition: height 380ms var(--ease-out);
+}
+
+.aptSlider__track {
+  display: flex;
+  align-items: flex-start;
+  width: 300%;
+  transition: transform 380ms var(--ease-out);
+}
+
+.aptSlider__panel {
+  flex: 0 0 33.3333%;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.aptSlider__panel.is-active {
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aptSlider,
+  .aptSlider__track {
+    transition: none;
+  }
+}
+
 /* ── Contact / confirm form ────────────────────────────────────── */
 .aptForm {
   display: flex;
