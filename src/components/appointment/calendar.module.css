@@ -11,14 +11,29 @@
   color: var(--color-ink-muted);
 }
 
+.wizard__panels {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+@media (max-width: 960px) {
+  .wizard__panels {
+    flex-direction: column;
+  }
+}
+
 /* ── Calendar ──────────────────────────────────────────────────── */
 .aptCal {
+  flex: 1 1 440px;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  width: 100%;
+  max-width: 780px;
   border: 1px solid var(--color-line);
   background-color: var(--color-surface);
-  padding: var(--space-4);
+  padding: var(--space-5);
 }
 
 .aptCal__head {
@@ -26,11 +41,13 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .aptCal__month {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 500;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -92,7 +109,7 @@
   appearance: none;
   border: none;
   background-color: var(--color-surface);
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1 / 1;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   color: var(--color-ink);
@@ -127,9 +144,12 @@
 
 /* ── Slots ─────────────────────────────────────────────────────── */
 .aptSlots {
+  flex: 1 1 320px;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  width: 100%;
+  max-width: 440px;
 }
 
 .aptSlots__hint {
@@ -156,7 +176,7 @@
 
 .aptSlots__grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-2);
 }
 
@@ -164,9 +184,9 @@
   appearance: none;
   background-color: var(--color-surface);
   border: 1px solid var(--color-line);
-  padding: var(--space-3) 0;
+  padding: var(--space-2) 0;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   letter-spacing: 0.04em;
   color: var(--color-ink);
   cursor: pointer;
@@ -195,8 +215,39 @@
   color: var(--color-ink-muted);
 }
 
-@media (max-width: 480px) {
-  .aptSlots__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+.aptSlots__skeleton {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.aptSlots__skeletonItem {
+  height: 2.6rem;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-line);
+  animation: aptSlotsPulse 1.8s var(--ease-out) infinite;
+}
+
+@keyframes aptSlotsPulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aptSlots__skeletonItem {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 380px) {
+  .aptSlots__grid,
+  .aptSlots__skeleton {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
