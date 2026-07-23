@@ -6,39 +6,18 @@ import { adminFetch } from "../../admin/api";
 const guard = await requireAdmin(Astro);
 if (!guard.ok) return guard.redirect;
 
-interface UsersListResponse {
-  users: { id: string }[];
-}
-interface QuizzesListResponse {
-  quizzes: { id: string }[];
-}
 interface AppointmentsListResponse {
   appointments: { id: string }[];
 }
 
-const [usersResult, quizzesResult, appointmentsResult] = await Promise.all([
-  adminFetch<UsersListResponse>(Astro, "/api/admin/users"),
-  adminFetch<QuizzesListResponse>(Astro, "/api/admin/quizzes"),
-  adminFetch<AppointmentsListResponse>(Astro, "/api/admin/appointments"),
-]);
+const appointmentsResult = await adminFetch<AppointmentsListResponse>(
+  Astro,
+  "/api/admin/appointments",
+);
 
 const cards = [
   {
-    eyebrow: "01 / Usuarios",
-    label: "Staff registrado",
-    href: "/admin/users",
-    count: usersResult.ok ? usersResult.data.users.length : null,
-    failed: !usersResult.ok,
-  },
-  {
-    eyebrow: "02 / Quizzes",
-    label: "Plantillas activas e históricas",
-    href: "/admin/quizzes",
-    count: quizzesResult.ok ? quizzesResult.data.quizzes.length : null,
-    failed: !quizzesResult.ok,
-  },
-  {
-    eyebrow: "03 / Citas",
+    eyebrow: "01 / Citas",
     label: "Solicitudes y agenda",
     href: "/admin/appointments",
     count: appointmentsResult.ok
@@ -53,7 +32,7 @@ const cards = [
   <section class="adminPage">
     <header class="adminPage__head">
       <span class="adminPage__eyebrow">00 / Inicio</span>
-      <h1 class="adminPage__title">Bienvenido, {guard.admin.name}.</h1>
+      <h1 class="adminPage__title">Bienvenido, {guard.admin.email}.</h1>
       <p class="adminPage__lead">
         Resumen del estado actual del sistema. Cada tarjeta linkea a la sección
         correspondiente.
@@ -89,7 +68,8 @@ const cards = [
 <style>
   .dash {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 320px;
     gap: 1px;
     background-color: var(--color-line);
     border: 1px solid var(--color-line);

@@ -2,17 +2,18 @@
 import AdminLayout from "../../layouts/AdminLayout.astro";
 import { requireAdmin } from "../../admin/guard";
 import { adminFetch } from "../../admin/api";
-import { formatTimestamp, truncateId } from "../../admin/format";
+import { formatTimestamp } from "../../admin/format";
 
 const guard = await requireAdmin(Astro);
 if (!guard.ok) return guard.redirect;
 
-type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
+type AppointmentStatus = "pending" | "confirmed" | "cancelled";
 
 interface AppAppointment {
   id: string;
-  client_id: string;
-  vendor_id: string | null;
+  name: string;
+  email: string;
+  phone: string;
   appointment_date: string;
   status: AppointmentStatus;
   created_at: string;
@@ -32,14 +33,12 @@ const STATUS_LABEL: Record<AppointmentStatus, string> = {
   pending: "Pendiente",
   confirmed: "Confirmada",
   cancelled: "Cancelada",
-  completed: "Completada",
 };
 
 const STATUS_BADGE: Record<AppointmentStatus, string> = {
   pending: "badge--warn",
   confirmed: "badge--ok",
   cancelled: "badge--off",
-  completed: "badge--done",
 };
 ---
 
@@ -48,7 +47,7 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
     <header class="adminPage__head">
       <div class="adminPage__headRow">
         <div class="adminPage__headTitles">
-          <span class="adminPage__eyebrow">03 / Citas</span>
+          <span class="adminPage__eyebrow">01 / Citas</span>
           <h1 class="adminPage__title">Citas</h1>
         </div>
         <a class="btn btn--primary" href="/admin/appointments/new">
@@ -91,8 +90,8 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
             <thead>
               <tr>
                 <th class="is-mono">Fecha cita</th>
-                <th class="is-mono">Cliente</th>
-                <th class="is-mono">Vendor</th>
+                <th class="is-mono">Nombre</th>
+                <th class="is-mono">Contacto</th>
                 <th class="is-mono">Estado</th>
                 <th class="is-mono">Creado</th>
               </tr>
@@ -107,11 +106,9 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
                   <td class="is-mono is-tight">
                     {formatTimestamp(a.appointment_date)}
                   </td>
-                  <td class="is-mono is-muted" title={a.client_id}>
-                    {truncateId(a.client_id)}
-                  </td>
-                  <td class="is-mono is-muted" title={a.vendor_id ?? undefined}>
-                    {a.vendor_id ? truncateId(a.vendor_id) : "—"}
+                  <td>{a.name}</td>
+                  <td class="is-mono is-muted">
+                    {a.email} · {a.phone}
                   </td>
                   <td>
                     <span class:list={["badge", STATUS_BADGE[a.status]]}>

@@ -12,15 +12,7 @@ const {
 } = await supabase.auth.getUser();
 
 if (user) {
-  const { data: appUser } = await supabase
-    .from("app_user")
-    .select("role, active")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (appUser && appUser.role === "admin" && appUser.active) {
-    return Astro.redirect("/admin");
-  }
+  return Astro.redirect("/admin");
 }
 
 const reason = Astro.url.searchParams.get("reason");

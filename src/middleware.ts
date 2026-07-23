@@ -2,44 +2,19 @@ import { defineMiddleware } from "astro:middleware";
 import { json } from "./lib/http";
 import { createSupabaseServerClient } from "./lib/supabase/server";
 
-const PROTECTED_PREFIXES = [
-  "/admin",
-  "/api/admin",
-  "/vendors",
-  "/api/vendors",
-];
+const PROTECTED_PREFIXES = ["/admin", "/api/admin"];
 
 const PUBLIC_EXCEPTIONS = new Set([
   "/admin/login",
   "/api/admin/login",
   "/api/admin/logout",
-  "/vendors/login",
-  "/api/vendors/login",
-  "/api/vendors/logout",
 ]);
-
-const ADMIN_ONLY_PREFIXES = [
-  "/api/admin/users",
-  "/api/admin/quizzes",
-  "/api/admin/appointments",
-  "/api/admin/clients",
-];
 
 function isProtected(pathname: string): boolean {
   if (PUBLIC_EXCEPTIONS.has(pathname)) return false;
   return PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/"),
   );
-}
-
-function requiresAdmin(pathname: string): boolean {
-  return ADMIN_ONLY_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
-  );
-}
-
-function loginUrlFor(pathname: string): string {
-  return pathname.startsWith("/vendors") ? "/vendors/login" : "/admin/login";
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -63,22 +38,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (pathname.startsWith("/api/")) {
       return json({ error: "unauthorized" }, 401);
     }
-    return context.redirect(loginUrlFor(pathname));
-  }
-
-  if (requiresAdmin(pathname)) {
-    const { data: appUser } = await supabase
-      .from("app_user")
-      .select("role, active")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (!appUser || appUser.role !== "admin" || !appUser.active) {
-      if (pathname.startsWith("/api/")) {
-        return json({ error: "forbidden" }, 403);
-      }
-      return context.redirect(loginUrlFor(pathname));
-    }
+    return context.redirect("/admin/login");
   }
 
   context.locals.user = user;

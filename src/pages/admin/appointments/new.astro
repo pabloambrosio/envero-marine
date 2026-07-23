@@ -1,55 +1,18 @@
 ---
 import AdminLayout from "../../../layouts/AdminLayout.astro";
 import { requireAdmin } from "../../../admin/guard";
-import { adminFetch } from "../../../admin/api";
 
 const guard = await requireAdmin(Astro);
 if (!guard.ok) return guard.redirect;
-
-interface AppUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  active: boolean;
-}
-
-interface AppQuiz {
-  id: string;
-  title: string;
-  active: boolean;
-}
-
-interface UsersResponse {
-  users: AppUser[];
-}
-interface QuizzesResponse {
-  quizzes: AppQuiz[];
-}
-
-const [usersResult, quizzesResult] = await Promise.all([
-  adminFetch<UsersResponse>(Astro, "/api/admin/users"),
-  adminFetch<QuizzesResponse>(Astro, "/api/admin/quizzes"),
-]);
-
-const vendors = usersResult.ok
-  ? usersResult.data.users.filter((u) => u.role === "vendor" && u.active)
-  : [];
-
-const quizzes = quizzesResult.ok
-  ? quizzesResult.data.quizzes.filter((q) => q.active)
-  : [];
 ---
 
 <AdminLayout title="Nueva cita · Admin">
   <section class="adminPage">
     <header class="adminPage__head">
-      <span class="adminPage__eyebrow">03 / Citas · Nueva</span>
+      <span class="adminPage__eyebrow">01 / Citas · Nueva</span>
       <h1 class="adminPage__title">Crear cita</h1>
       <p class="adminPage__lead">
-        Cargá los datos del cliente y la cita en un mismo formulario. Si
-        querés vincular un quiz, activá el toggle al final. Si no, la cita
-        queda sin quiz asociado.
+        Cargá los datos de contacto y la fecha de la cita.
       </p>
     </header>
 
@@ -59,83 +22,60 @@ const quizzes = quizzesResult.ok
         <span class="adminForm__alertText" data-form-alert-text></span>
       </div>
 
-      <div class="adminForm__section">
-        <span class="adminForm__sectionTag">Cliente</span>
-        <p class="adminForm__sectionLead">
-          Datos del lead. Solo el nombre es obligatorio.
-        </p>
-      </div>
-
       <div class="adminForm__field">
-        <label class="adminForm__label" for="client-name">
+        <label class="adminForm__label" for="appointment-name">
           <span class="adminForm__labelText">Nombre</span>
           <span class="adminForm__labelReq" aria-hidden="true">*</span>
         </label>
         <input
           class="adminForm__input"
           type="text"
-          name="client_name"
-          id="client-name"
+          name="name"
+          id="appointment-name"
           autocomplete="name"
           required
-          data-form-input="client_name"
+          data-form-input="name"
         />
-        <span class="adminForm__fieldError" data-form-error="client_name"></span>
+        <span class="adminForm__fieldError" data-form-error="name"></span>
       </div>
 
       <div class="adminForm__field">
-        <label class="adminForm__label" for="client-email">
+        <label class="adminForm__label" for="appointment-email">
           <span class="adminForm__labelText">Email</span>
-          <span class="adminForm__hint">Opcional</span>
+          <span class="adminForm__labelReq" aria-hidden="true">*</span>
         </label>
         <input
           class="adminForm__input"
           type="email"
-          name="client_email"
-          id="client-email"
+          name="email"
+          id="appointment-email"
           autocomplete="email"
-          data-form-input="client_email"
+          required
+          data-form-input="email"
         />
-        <span class="adminForm__fieldError" data-form-error="client_email"></span>
+        <span class="adminForm__fieldError" data-form-error="email"></span>
       </div>
 
       <div class="adminForm__field">
-        <label class="adminForm__label" for="client-phone">
+        <label class="adminForm__label" for="appointment-phone">
           <span class="adminForm__labelText">Teléfono</span>
-          <span class="adminForm__hint">Opcional</span>
+          <span class="adminForm__labelReq" aria-hidden="true">*</span>
         </label>
         <input
           class="adminForm__input"
           type="tel"
-          name="client_phone"
-          id="client-phone"
+          name="phone"
+          id="appointment-phone"
           autocomplete="tel"
-          data-form-input="client_phone"
+          required
+          data-form-input="phone"
         />
-        <span class="adminForm__fieldError" data-form-error="client_phone"></span>
-      </div>
-
-      <div class="adminForm__field">
-        <label class="adminForm__label" for="client-company">
-          <span class="adminForm__labelText">Empresa</span>
-          <span class="adminForm__hint">Opcional</span>
-        </label>
-        <input
-          class="adminForm__input"
-          type="text"
-          name="client_company"
-          id="client-company"
-          autocomplete="organization"
-          data-form-input="client_company"
-        />
-        <span class="adminForm__fieldError" data-form-error="client_company"></span>
+        <span class="adminForm__fieldError" data-form-error="phone"></span>
       </div>
 
       <div class="adminForm__section adminForm__section--divider">
         <span class="adminForm__sectionTag">Cita</span>
-        <p class="adminForm__sectionLead">
-          Fecha y estado iniciales. Asignar un vendor es opcional.
-        </p>
+        <p class="adminForm__sectionLead">Fecha y estado inicial.</p>
       </div>
 
       <div class="adminForm__field">
@@ -169,35 +109,9 @@ const quizzes = quizzesResult.ok
         >
           <option value="pending" selected>Pendiente</option>
           <option value="confirmed">Confirmada</option>
-          <option value="completed">Completada</option>
           <option value="cancelled">Cancelada</option>
         </select>
         <span class="adminForm__fieldError" data-form-error="status"></span>
-      </div>
-
-      <div class="adminForm__field">
-        <label class="adminForm__label" for="appointment-vendor">
-          <span class="adminForm__labelText">Vendor</span>
-          <span class="adminForm__hint">
-            {vendors.length === 0
-              ? "No hay vendors activos"
-              : "Opcional · solo activos"}
-          </span>
-        </label>
-        <select
-          class="adminForm__select"
-          name="vendor_id"
-          id="appointment-vendor"
-          data-form-input="vendor_id"
-        >
-          <option value="" selected>Sin asignar</option>
-          {vendors.map((v) => (
-            <option value={v.id}>
-              {v.name} · {v.email}
-            </option>
-          ))}
-        </select>
-        <span class="adminForm__fieldError" data-form-error="vendor_id"></span>
       </div>
 
       <div class="adminForm__field">
@@ -212,55 +126,6 @@ const quizzes = quizzesResult.ok
           rows="3"
           data-form-input="notes"></textarea>
         <span class="adminForm__fieldError" data-form-error="notes"></span>
-      </div>
-
-      <div class="adminForm__section adminForm__section--divider">
-        <span class="adminForm__sectionTag">Quiz (opcional)</span>
-        <label class="adminForm__check">
-          <input
-            class="adminForm__checkBox"
-            type="checkbox"
-            name="link_quiz"
-            data-form-toggle="quiz"
-          />
-          <span>Vincular esta cita con un quiz</span>
-        </label>
-      </div>
-
-      <div class="adminForm__field" data-quiz-field hidden>
-        <label class="adminForm__label" for="appointment-quiz">
-          <span class="adminForm__labelText">Quiz</span>
-        </label>
-        <select
-          class="adminForm__select"
-          name="quiz_id"
-          id="appointment-quiz"
-          data-form-input="quiz_id"
-        >
-          <option value="" selected>—</option>
-          {quizzes.map((q) => (
-            <option value={q.id}>{q.title}</option>
-          ))}
-        </select>
-        <span class="adminForm__fieldError" data-form-error="quiz_id"></span>
-      </div>
-
-      <div class="adminForm__field" data-quiz-field hidden>
-        <label class="adminForm__label" for="appointment-snapshot">
-          <span class="adminForm__labelText">Quiz snapshot (JSON)</span>
-          <span class="adminForm__hint">Vacío = sin respuestas</span>
-        </label>
-        <textarea
-          class="adminForm__input adminForm__input--textarea"
-          name="quiz_snapshot"
-          id="appointment-snapshot"
-          rows="4"
-          placeholder='{"answers": []}'
-          data-form-input="quiz_snapshot"></textarea>
-        <span
-          class="adminForm__fieldError"
-          data-form-error="quiz_snapshot"
-        ></span>
       </div>
 
       <div class="adminForm__actions">
@@ -300,12 +165,6 @@ const quizzes = quizzesResult.ok
     const inputs = form.querySelectorAll<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >("[data-form-input]");
-    const quizToggle = form.querySelector<HTMLInputElement>(
-      "[data-form-toggle='quiz']",
-    );
-    const quizFields = form.querySelectorAll<HTMLDivElement>(
-      "[data-quiz-field]",
-    );
 
     function clearErrors() {
       if (alertBox) alertBox.hidden = true;
@@ -337,212 +196,72 @@ const quizzes = quizzesResult.ok
       if (input) input.classList.add("has-error");
     }
 
-    quizToggle?.addEventListener("change", () => {
-      const visible = quizToggle.checked;
-      quizFields.forEach((field) => {
-        field.hidden = !visible;
-      });
-    });
-
-    function buildClientPayload(data: FormData) {
-      const payload: Record<string, string> = {
-        name: String(data.get("client_name") ?? "").trim(),
-      };
-      const email = String(data.get("client_email") ?? "").trim();
-      const phone = String(data.get("client_phone") ?? "").trim();
-      const company = String(data.get("client_company") ?? "").trim();
-      if (email) payload.email = email;
-      if (phone) payload.phone = phone;
-      if (company) payload.company_name = company;
-      return payload;
-    }
-
-    function parseQuizSnapshot(raw: string): unknown {
-      const trimmed = raw.trim();
-      if (!trimmed) return {};
-      try {
-        return JSON.parse(trimmed);
-      } catch {
-        throw new Error("invalid_json");
-      }
-    }
-
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       clearErrors();
 
       const data = new FormData(form);
-      const linkQuiz = quizToggle?.checked ?? false;
-
-      // build client payload first
-      const clientPayload = buildClientPayload(data);
-
-      // appointment payload (filled with client_id after step 1)
-      const vendorRaw = String(data.get("vendor_id") ?? "");
       const notesRaw = String(data.get("notes") ?? "").trim();
-      const dateRaw = String(data.get("appointment_date") ?? "").trim();
-      const statusRaw = String(data.get("status") ?? "pending");
 
-      let quizSnapshot: unknown = {};
-      let quizIdValue: string | null = null;
-
-      if (linkQuiz) {
-        quizIdValue =
-          String(data.get("quiz_id") ?? "").trim() || null;
-        try {
-          quizSnapshot = parseQuizSnapshot(
-            String(data.get("quiz_snapshot") ?? ""),
-          );
-        } catch {
-          showFieldError(
-            "quiz_snapshot",
-            "JSON inválido — revisá la sintaxis.",
-          );
-          showAlert("El snapshot del quiz no es JSON válido.");
-          return;
-        }
-      }
+      const payload: Record<string, unknown> = {
+        name: String(data.get("name") ?? "").trim(),
+        email: String(data.get("email") ?? "").trim(),
+        phone: String(data.get("phone") ?? "").trim(),
+        appointment_date: String(data.get("appointment_date") ?? "").trim(),
+        status: String(data.get("status") ?? "pending"),
+      };
+      if (notesRaw) payload.notes = notesRaw;
 
       if (!submit || !submitLabel) return;
       submit.disabled = true;
-      submitLabel.textContent = "Creando cliente…";
-
-      // step 1: create the client
-      let clientId: string;
-      try {
-        const clientRes = await fetch("/api/admin/clients", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "same-origin",
-          body: JSON.stringify(clientPayload),
-        });
-
-        if (clientRes.status === 401) {
-          window.location.href = "/admin/login";
-          return;
-        }
-        if (clientRes.status === 403) {
-          window.location.href = "/admin/login?reason=forbidden";
-          return;
-        }
-
-        const clientBody = await clientRes.json().catch(() => ({}));
-
-        if (!clientRes.ok) {
-          if (
-            clientRes.status === 400 &&
-            Array.isArray(clientBody.issues) &&
-            clientBody.issues.length > 0
-          ) {
-            clientBody.issues.forEach((issue: Issue) => {
-              const path = issue.path?.[0];
-              if (typeof path === "string" && issue.message) {
-                // remap server-side field names to form field names
-                const formField =
-                  path === "name"
-                    ? "client_name"
-                    : path === "email"
-                      ? "client_email"
-                      : path === "phone"
-                        ? "client_phone"
-                        : path === "company_name"
-                          ? "client_company"
-                          : path;
-                showFieldError(formField, issue.message);
-              }
-            });
-            showAlert("Revisá los datos del cliente.");
-          } else {
-            showAlert(
-              clientBody.error ??
-                "No pudimos crear el cliente. La cita no se creó.",
-            );
-          }
-          submit.disabled = false;
-          submitLabel.textContent = "Crear cita";
-          return;
-        }
-
-        clientId = clientBody.client?.id;
-        if (!clientId) {
-          showAlert(
-            "El servidor no devolvió un ID de cliente. La cita no se creó.",
-          );
-          submit.disabled = false;
-          submitLabel.textContent = "Crear cita";
-          return;
-        }
-      } catch {
-        showAlert("Error de red al crear el cliente.");
-        submit.disabled = false;
-        submitLabel.textContent = "Crear cita";
-        return;
-      }
-
-      // step 2: create the appointment
       submitLabel.textContent = "Creando cita…";
-      const appointmentPayload: Record<string, unknown> = {
-        client_id: clientId,
-        appointment_date: dateRaw,
-        status: statusRaw,
-        quiz_snapshot: quizSnapshot,
-      };
-      if (vendorRaw) appointmentPayload.vendor_id = vendorRaw;
-      if (notesRaw) appointmentPayload.notes = notesRaw;
-      if (linkQuiz && quizIdValue) appointmentPayload.quiz_id = quizIdValue;
 
       try {
-        const apptRes = await fetch("/api/admin/appointments", {
+        const response = await fetch("/api/admin/appointments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
-          body: JSON.stringify(appointmentPayload),
+          body: JSON.stringify(payload),
         });
 
-        if (apptRes.status === 401) {
+        if (response.status === 401) {
           window.location.href = "/admin/login";
           return;
         }
-        if (apptRes.status === 403) {
+        if (response.status === 403) {
           window.location.href = "/admin/login?reason=forbidden";
           return;
         }
 
-        const apptBody = await apptRes.json().catch(() => ({}));
+        const body = await response.json().catch(() => ({}));
 
-        if (!apptRes.ok) {
+        if (!response.ok) {
           if (
-            apptRes.status === 400 &&
-            Array.isArray(apptBody.issues) &&
-            apptBody.issues.length > 0
+            response.status === 400 &&
+            Array.isArray(body.issues) &&
+            body.issues.length > 0
           ) {
-            apptBody.issues.forEach((issue: Issue) => {
+            body.issues.forEach((issue: Issue) => {
               const path = issue.path?.[0];
               if (typeof path === "string" && issue.message) {
                 showFieldError(path, issue.message);
               }
             });
-            showAlert(
-              "Cliente creado, pero la cita falló. Revisá los datos de la cita.",
-            );
+            showAlert("Revisá los datos del formulario.");
           } else {
-            showAlert(
-              `Cliente creado, pero la cita falló: ${apptBody.error ?? "error desconocido"}.`,
-            );
+            showAlert(body.error ?? "No pudimos crear la cita.");
           }
           submit.disabled = false;
           submitLabel.textContent = "Crear cita";
           return;
         }
 
-        const appointmentId = apptBody.appointment?.id;
-        if (appointmentId) {
-          window.location.href = `/admin/appointments/${appointmentId}`;
-        } else {
-          window.location.href = "/admin/appointments";
-        }
+        const appointmentId = body.appointment?.id;
+        window.location.href = appointmentId
+          ? `/admin/appointments/${appointmentId}`
+          : "/admin/appointments";
       } catch {
-        showAlert("Cliente creado, pero error de red al crear la cita.");
+        showAlert("Error de red al crear la cita.");
         submit.disabled = false;
         submitLabel.textContent = "Crear cita";
       }

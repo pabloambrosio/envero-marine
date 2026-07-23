@@ -9,45 +9,29 @@ if (!guard.ok) return guard.redirect;
 const { id } = Astro.params;
 if (!id) return Astro.redirect("/admin/appointments");
 
-type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
+type AppointmentStatus = "pending" | "confirmed" | "cancelled";
 
 interface AppAppointment {
   id: string;
-  vendor_id: string | null;
   appointment_date: string;
   status: AppointmentStatus;
   notes: string | null;
 }
 
-interface AppUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  active: boolean;
-}
-
 interface AppointmentResponse {
   appointment: AppAppointment;
 }
-interface UsersResponse {
-  users: AppUser[];
-}
 
-const [appointmentResult, usersResult] = await Promise.all([
-  adminFetch<AppointmentResponse>(Astro, `/api/admin/appointments/${id}`),
-  adminFetch<UsersResponse>(Astro, "/api/admin/users"),
-]);
+const appointmentResult = await adminFetch<AppointmentResponse>(
+  Astro,
+  `/api/admin/appointments/${id}`,
+);
 
 const isNotFound =
   !appointmentResult.ok && appointmentResult.status === 404;
 const appointment = appointmentResult.ok
   ? appointmentResult.data.appointment
   : null;
-
-const vendors = usersResult.ok
-  ? usersResult.data.users.filter((u) => u.role === "vendor" && u.active)
-  : [];
 
 // datetime-local expects "YYYY-MM-DDTHH:MM" — strip seconds + timezone
 function toDatetimeLocal(value: string | null | undefined): string {
@@ -61,11 +45,11 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
 <AdminLayout title="Editar cita · Admin">
   <section class="adminPage">
     <header class="adminPage__head">
-      <span class="adminPage__eyebrow">03 / Citas · Editar</span>
+      <span class="adminPage__eyebrow">01 / Citas · Editar</span>
       <h1 class="adminPage__title">Editar cita</h1>
       <p class="adminPage__lead">
-        Cambiá el estado, asigná o desasigná un vendor, ajustá la fecha o las
-        notas. Para cancelar la cita, cambiá el estado a "Cancelada".
+        Cambiá el estado, ajustá la fecha o las notas. Para cancelar la cita,
+        cambiá el estado a "Cancelada".
       </p>
     </header>
 
@@ -140,12 +124,6 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
                 Confirmada
               </option>
               <option
-                value="completed"
-                selected={appointment.status === "completed"}
-              >
-                Completada
-              </option>
-              <option
                 value="cancelled"
                 selected={appointment.status === "cancelled"}
               >
@@ -153,36 +131,6 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
               </option>
             </select>
             <span class="adminForm__fieldError" data-form-error="status" />
-          </div>
-
-          <div class="adminForm__field">
-            <label class="adminForm__label" for="appointment-vendor">
-              <span class="adminForm__labelText">Vendor</span>
-              <span class="adminForm__hint">
-                {vendors.length === 0
-                  ? "No hay vendors activos"
-                  : "Solo se listan vendors activos"}
-              </span>
-            </label>
-            <select
-              class="adminForm__select"
-              name="vendor_id"
-              id="appointment-vendor"
-              data-form-input="vendor_id"
-            >
-              <option value="" selected={!appointment.vendor_id}>
-                Sin asignar
-              </option>
-              {vendors.map((v) => (
-                <option
-                  value={v.id}
-                  selected={appointment.vendor_id === v.id}
-                >
-                  {v.name} · {v.email}
-                </option>
-              ))}
-            </select>
-            <span class="adminForm__fieldError" data-form-error="vendor_id" />
           </div>
 
           <div class="adminForm__field">
@@ -304,12 +252,10 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
       clearErrors();
 
       const data = new FormData(form);
-      const vendorRaw = String(data.get("vendor_id") ?? "");
       const notesRaw = String(data.get("notes") ?? "").trim();
 
       const payload = {
         status: String(data.get("status") ?? "pending"),
-        vendor_id: vendorRaw === "" ? null : vendorRaw,
         appointment_date: String(data.get("appointment_date") ?? ""),
         notes: notesRaw === "" ? null : notesRaw,
       };

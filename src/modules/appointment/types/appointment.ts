@@ -4,14 +4,12 @@ export const AppointmentStatusSchema = z.enum([
   "pending",
   "confirmed",
   "cancelled",
-  "completed",
 ]);
 
 export const CreateAppointmentSchema = z.object({
-  client_id: z.uuid(),
-  vendor_id: z.uuid().optional(),
-  quiz_id: z.uuid().optional(),
-  quiz_snapshot: z.unknown(),
+  name: z.string().min(1),
+  email: z.email(),
+  phone: z.string().min(1),
   appointment_date: z.string().min(1),
   status: AppointmentStatusSchema.optional(),
   notes: z.string().optional(),
@@ -20,14 +18,12 @@ export const CreateAppointmentSchema = z.object({
 export const UpdateAppointmentSchema = z
   .object({
     status: AppointmentStatusSchema.optional(),
-    vendor_id: z.uuid().nullable().optional(),
     appointment_date: z.string().min(1).optional(),
     notes: z.string().nullable().optional(),
   })
   .refine(
     (data) =>
       data.status !== undefined ||
-      data.vendor_id !== undefined ||
       data.appointment_date !== undefined ||
       data.notes !== undefined,
     { message: "at least one field must be provided" },
@@ -39,10 +35,9 @@ export type UpdateAppointmentRequest = z.infer<typeof UpdateAppointmentSchema>;
 
 export interface AppAppointment {
   id: string;
-  client_id: string;
-  vendor_id: string | null;
-  quiz_id: string | null;
-  quiz_snapshot: unknown;
+  name: string;
+  email: string;
+  phone: string;
   appointment_date: string;
   status: AppointmentStatus;
   notes: string | null;
