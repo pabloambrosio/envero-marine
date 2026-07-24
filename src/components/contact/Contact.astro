@@ -1,0 +1,40 @@
+---
+import Contact from "./Contact";
+import type { ContactLabels } from "./Contact";
+import { resolveLang, useTranslations } from "../../i18n/utils";
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const labels: ContactLabels = {
+  aria: t("contact.aria"),
+  eyebrow: t("contact.eyebrow"),
+  infoTag: t("contact.info.tag"),
+  heading: t("contact.heading"),
+  lead: t("contact.lead"),
+  channelsAria: t("contact.channels.aria"),
+  emailLabel: t("contact.channels.email.label"),
+  emailValue: t("contact.channels.email.value"),
+  whatsappLabel: t("contact.channels.whatsapp.label"),
+  whatsappValue: t("contact.channels.whatsapp.value"),
+  baseLabel: t("contact.channels.base.label"),
+  baseValue: t("contact.channels.base.value"),
+  form: {
+    aria: t("contact.form.aria"),
+    tag: t("contact.form.tag"),
+    fieldName: t("contact.form.field.name"),
+    fieldEmail: t("contact.form.field.email"),
+    fieldCompany: t("contact.form.field.company"),
+    fieldPhone: t("contact.form.field.phone"),
+    fieldMessage: t("contact.form.field.message"),
+    note: t("contact.form.note"),
+    cta: t("contact.form.cta"),
+    statusSending: t("contact.form.status.sending"),
+    statusSuccess: t("contact.form.status.success"),
+    statusErrorGeneric: t("contact.form.status.errorGeneric"),
+    statusErrorNetwork: t("contact.form.status.errorNetwork"),
+  },
+};
+---
+
+<Contact labels={labels} client:visible />
