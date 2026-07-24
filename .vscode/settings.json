@@ -1,0 +1,6 @@
+{
+    "workbench.preferredLightColorTheme": "Default High Contrast Light",
+    "workbench.preferredDarkColorTheme": "Dracula Theme",
+    "window.autoDetectColorScheme": true,
+    "print.sourcecode.colourScheme": "Atom One"
+}

@@ -1,0 +1,26 @@
+{
+  "Pregunta del banco": {
+    "prefix": "preg",
+    "scope": "markdown",
+    "description": "Bloque de pregunta para el banco de preguntas (provisional)",
+    "body": [
+      "### Pregunta ${1:N}",
+      "- **Pregunta:** ${2:texto de la pregunta}",
+      "- **Respuestas:** ${3:opción · opción · opción}",
+      "- **Responsabilidad:** ${4:—}",
+      "- **Variable:** ${5:—}",
+      "$0"
+    ]
+  },
+  "Sección del banco": {
+    "prefix": "secc",
+    "scope": "markdown",
+    "description": "Encabezado de sección (provisional)",
+    "body": [
+      "---",
+      "",
+      "## Sección ${1:N} · ${2:nombre}",
+      "$0"
+    ]
+  }
+}
