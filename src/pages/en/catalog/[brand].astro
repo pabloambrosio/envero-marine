@@ -1,0 +1,35 @@
+---
+export const prerender = true;
+
+import Layout from "../../../layouts/Layout.astro";
+import Navbar from "../../../components/Navbar.astro";
+import Footer from "../../../components/Footer.astro";
+import CatalogView from "../../../components/catalog/CatalogView.astro";
+import { catalogBrands, type CatalogBrand } from "../../../data/catalog";
+import { resolveLang } from "../../../i18n/utils";
+
+export function getStaticPaths() {
+  return catalogBrands.map((brand) => ({
+    params: { brand: brand.slug },
+    props: { brand },
+  }));
+}
+
+interface Props {
+  brand: CatalogBrand;
+}
+
+const { brand } = Astro.props;
+const lang = resolveLang(Astro.currentLocale);
+---
+
+<Layout
+  title={`${brand.name} — Envero Marine`}
+  description={brand.lead[lang]}
+>
+  <Navbar />
+  <main>
+    <CatalogView brand={brand} />
+  </main>
+  <Footer />
+</Layout>

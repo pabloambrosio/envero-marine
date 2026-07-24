@@ -1,6 +1,7 @@
 ---
 
 import { resolveLang, useTranslations } from "../i18n/utils";
+import { catalogHref } from "../data/catalog";
 
 const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
@@ -34,7 +35,7 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           decoding="async"
         />
         <span class="bento__brandCaption">{t("bento.brand.totalenergies.caption")}</span>
-        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.totalenergies.ariaLabel")}>
+        <a class="bento__brandLink" href={catalogHref("totalenergies", lang)} aria-label={t("bento.brand.totalenergies.ariaLabel")}>
           <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>
@@ -48,7 +49,7 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           decoding="async"
         />
         <span class="bento__brandCaption">{t("bento.brand.currentTechnology.caption")}</span>
-        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.currentTechnology.ariaLabel")}>
+        <a class="bento__brandLink" href={catalogHref("current-technology", lang)} aria-label={t("bento.brand.currentTechnology.ariaLabel")}>
           <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>
@@ -62,7 +63,7 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           decoding="async"
         />
         <span class="bento__brandCaption">{t("bento.brand.qer.caption")}</span>
-        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.qer.ariaLabel")}>
+        <a class="bento__brandLink" href={catalogHref("qer", lang)} aria-label={t("bento.brand.qer.ariaLabel")}>
           <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>
@@ -76,7 +77,7 @@ const cells = Array.from({ length: 27 }, (_, i) => i + 1).filter(
           decoding="async"
         />
         <span class="bento__brandCaption">{t("bento.brand.fonroche.caption")}</span>
-        <a class="bento__brandLink" href="#" aria-label={t("bento.brand.fonroche.ariaLabel")}>
+        <a class="bento__brandLink" href={catalogHref("fonroche", lang)} aria-label={t("bento.brand.fonroche.ariaLabel")}>
           <span>{t("bento.brand.catalogLink")}</span>
           <span class="bento__brandLinkArrow" aria-hidden="true">→</span>
         </a>

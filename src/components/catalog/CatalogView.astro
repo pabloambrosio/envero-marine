@@ -1,0 +1,918 @@
+---
+import { resolveLang, useTranslations } from "../../i18n/utils";
+import {
+  catalogBrands,
+  catalogHref,
+  type CatalogBrand,
+} from "../../data/catalog";
+
+interface Props {
+  brand: CatalogBrand;
+}
+
+const { brand } = Astro.props;
+
+const lang = resolveLang(Astro.currentLocale);
+const t = useTranslations(lang);
+
+const homeHref = lang === "en" ? "/en/" : "/";
+const contactHref = "/contact";
+
+// Mientras la marca esté en "wip" no publicamos fichas ni cifras: el
+// contenido de `lines` y `stats` sigue siendo borrador de dimensionamiento.
+const isWip = brand.status !== "live";
+
+// El resto de las marcas se ofrecen al pie: la página es una hoja del
+// catálogo, no un callejón sin salida.
+const otherBrands = catalogBrands.filter((b) => b.slug !== brand.slug);
+---
+
+<article class="cat">
+  <!-- Cabecera: voz editorial (headline + lead) sobre el verde de marca,
+       con las cifras en mono para que pesen como plano técnico. -->
+  <header class="cat__head">
+    <div class="cat__container">
+      <nav class="cat__crumbs" aria-label="Breadcrumb">
+        <a href={homeHref}>{t("catalog.breadcrumb.home")}</a>
+        <span aria-hidden="true">/</span>
+        <a href={`${homeHref}#marcas`}>{t("catalog.breadcrumb.brands")}</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{brand.name}</span>
+      </nav>
+
+      <div class="cat__headGrid">
+        <div class="cat__headMain">
+          <span class="cat__kicker">{brand.kicker[lang]}</span>
+          <h1 class="cat__title">{isWip ? brand.name : brand.headline[lang]}</h1>
+          {!isWip && <p class="cat__lead">{brand.lead[lang]}</p>}
+        </div>
+
+        <div class="cat__headAside">
+          <div class="cat__logoPlate">
+            <img
+              class="cat__logo"
+              src={brand.logo}
+              alt={brand.name}
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+          {!isWip && <span class="cat__brandName">{brand.name}</span>}
+        </div>
+      </div>
+
+      {
+        !isWip && (
+          <dl class="cat__stats">
+            {brand.stats.map((stat) => (
+              <div class="cat__stat">
+                <dt class="cat__statLabel">{stat.label[lang]}</dt>
+                <dd class="cat__statValue">{stat.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+    </div>
+  </header>
+
+  <!-- Índice de líneas: control técnico, no navegación del sitio. -->
+  {
+    !isWip && (
+      <nav class="cat__index" aria-label={t("catalog.index.aria")}>
+        <div class="cat__container cat__indexInner">
+          <span class="cat__indexLabel">{t("catalog.index.label")}</span>
+          <ul class="cat__indexList">
+            {brand.lines.map((line, i) => (
+              <li>
+                <a class="cat__indexLink" href={`#${line.id}`}>
+                  <span class="cat__indexNum">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span>{line.title[lang]}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
+    )
+  }
+
+  <!-- Estado por defecto hoy: aviso de en construcción en vez de fichas. -->
+  {
+    isWip && (
+      <div class="cat__container cat__wipRow">
+        <section class="cat__wip" aria-labelledby="cat-wip-heading">
+          <span class="cat__wipTag">{t("catalog.wip.tag")}</span>
+          <h2 class="cat__wipHeading" id="cat-wip-heading">
+            {t("catalog.wip.heading")}
+          </h2>
+          <p class="cat__wipBody">{t("catalog.wip.body")}</p>
+          <a class="cat__wipLink" href={contactHref}>
+            <span>{t("catalog.wip.cta")}</span>
+            <span class="cat__btnArrow" aria-hidden="true">
+              →
+            </span>
+          </a>
+        </section>
+        <i class="fa-solid fa-helmet-safety cat__wipMark" aria-hidden="true" />
+      </div>
+    )
+  }
+
+  {
+    !isWip && (
+      <div class="cat__container">
+        <section class="cat__lines" aria-label={t("catalog.lines.aria")}>
+          {brand.lines.map((line, i) => (
+            <section class="cat__line" id={line.id}>
+              <header class="cat__lineHead">
+                <span class="cat__lineNum">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h2 class="cat__lineTitle">{line.title[lang]}</h2>
+                  <p class="cat__lineDesc">{line.description[lang]}</p>
+                </div>
+              </header>
+
+              <ul class="cat__products">
+                {line.products.map((product) => (
+                  <li class="cat__product">
+                    <div class="cat__productId">
+                      <span class="cat__productCode">{product.code}</span>
+                      <h3 class="cat__productName">{product.name}</h3>
+                    </div>
+
+                    <div class="cat__productBody">
+                      <p class="cat__productSummary">{product.summary[lang]}</p>
+
+                      <div class="cat__block">
+                        <span class="cat__blockLabel">
+                          {t("catalog.specs.label")}
+                        </span>
+                        <dl class="cat__specs">
+                          {product.specs.map((spec) => (
+                            <div class="cat__spec">
+                              <dt class="cat__specLabel">{spec.label[lang]}</dt>
+                              <dd class="cat__specValue">{spec.value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+
+                      <div class="cat__block">
+                        <span class="cat__blockLabel">
+                          {t("catalog.applications.label")}
+                        </span>
+                        <ul class="cat__apps">
+                          {product.applications.map((app) => (
+                            <li class="cat__app">{app[lang]}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </section>
+
+        <section class="cat__standards" aria-label={t("catalog.standards.label")}>
+          <span class="cat__blockLabel">{t("catalog.standards.label")}</span>
+          <ul class="cat__standardList">
+            {brand.standards.map((std) => (
+              <li class="cat__standard">{std}</li>
+            ))}
+          </ul>
+          <p class="cat__disclaimer">{t("catalog.disclaimer")}</p>
+        </section>
+      </div>
+    )
+  }
+
+  <!-- En "wip" el aviso ya lleva su propio llamado a contacto; repetir la
+       banda de cierre duplicaría la misma acción en media pantalla. -->
+  {
+    !isWip && (
+      <section class="cat__cta">
+        <div class="cat__container cat__ctaInner">
+          <div>
+            <span class="cat__kicker">{t("catalog.cta.eyebrow")}</span>
+            <h2 class="cat__ctaHeading">{t("catalog.cta.heading")}</h2>
+            <p class="cat__ctaLead">{t("catalog.cta.lead")}</p>
+          </div>
+          <div class="cat__ctaActions">
+            <a class="cat__btn cat__btn--primary" href={contactHref}>
+              <span>{t("catalog.cta.primary")}</span>
+              <span class="cat__btnArrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+            <a class="cat__btn cat__btn--ghost" href={`${homeHref}#marcas`}>
+              {t("catalog.cta.secondary")}
+            </a>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="cat__container cat__other">
+    <span class="cat__blockLabel">{t("catalog.other.label")}</span>
+    <ul class="cat__otherList">
+      {
+        otherBrands.map((other) => (
+          <li>
+            <a class="cat__otherLink" href={catalogHref(other.slug, lang)}>
+              <span class="cat__otherName">{other.name}</span>
+              <span class="cat__otherKicker">{other.kicker[lang]}</span>
+              <span class="cat__btnArrow" aria-hidden="true">
+                →
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</article>
+
+<style>
+  /* Wrapper neutro: lo comparten cabecera, índice, líneas, CTA y pie. No
+     lleva `display` propio — cada bloque define el suyo (cat__wipRow,
+     cat__ctaInner, cat__other), si no la cabecera se vuelve fila. */
+  .cat__container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--space-5);
+  }
+
+  /* — Cabecera — */
+
+  .cat__head {
+    background: linear-gradient(
+      135deg,
+      var(--color-primary-deep) 0%,
+      var(--color-primary) 60%,
+      var(--color-primary-soft) 100%
+    );
+    color: #fff;
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .cat__crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: var(--space-7);
+  }
+
+  .cat__crumbs a {
+    color: rgba(255, 255, 255, 0.72);
+    text-decoration: none;
+    transition: color 200ms var(--ease-out);
+  }
+
+  .cat__crumbs a:hover {
+    color: var(--color-accent-soft);
+  }
+
+  .cat__headGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--space-7);
+    align-items: start;
+  }
+
+  .cat__kicker {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+    margin-bottom: var(--space-4);
+  }
+
+  .cat__title {
+    margin: 0;
+    font-size: clamp(2rem, 1.2rem + 2.6vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  .cat__lead {
+    margin: var(--space-5) 0 0;
+    max-width: 62ch;
+    font-size: var(--fs-md);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .cat__headAside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .cat__logoPlate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Alto fijo: los wordmarks tienen proporciones muy distintas (Qer es
+       330×183, Current Technology 1317×230) y la placa tiene que verse
+       igual en las cuatro marcas. */
+    height: 152px;
+    padding: var(--space-6);
+    background: var(--color-sand);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  /* Se limita por ancho Y por alto: si solo se acota el ancho, los logos
+     cuadrados (Qer, TotalEnergies) rinden al triple de altura que los
+     apaisados y pesan de más. */
+  .cat__logo {
+    width: auto;
+    height: auto;
+    max-width: 190px;
+    max-height: 84px;
+    object-fit: contain;
+  }
+
+  .cat__brandName {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .cat__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-5);
+    margin: var(--space-8) 0 0;
+    padding-top: var(--space-5);
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+  }
+
+  .cat__stat {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+  }
+
+  .cat__statValue {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: clamp(1.5rem, 1rem + 1.6vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+
+  .cat__statLabel {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  /* — Índice de líneas (voz de control técnico) — */
+
+  .cat__index {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .cat__indexInner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-5);
+    padding-block: var(--space-3);
+  }
+
+  .cat__indexLabel {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .cat__indexList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cat__indexLink {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-primary);
+    transition: color 200ms var(--ease-out);
+  }
+
+  .cat__indexLink:hover {
+    color: var(--color-accent);
+  }
+
+  .cat__indexNum {
+    color: var(--color-ink-muted);
+  }
+
+  /* — Aviso de en construcción — */
+
+  .cat__wipRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-7);
+    margin-block: var(--space-8);
+  }
+
+  .cat__wip {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+    max-width: 60ch;
+    padding: var(--space-6);
+    border: 1px solid var(--color-line);
+    border-left: 2px solid var(--color-accent);
+  }
+
+  /* El casco lee "obra en curso" antes que el texto. Va suelto a la derecha,
+     a escala de ilustración: es la señal, no una viñeta del bloque.
+     `flex: none` + `display: block` lo dejan aislado del resto de la fila:
+     su tamaño no empuja ni encoge al bloque de texto, y el 55vw solo entra
+     en juego en pantallas donde 25rem no cabría. */
+  .cat__wipMark {
+    flex: none;
+    display: block;
+    font-size: min(25rem, 55vw);
+    line-height: 1;
+    color: var(--color-accent);
+    opacity: 0.9;
+  }
+
+  .cat__wipTag {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .cat__wipHeading {
+    margin: 0;
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+
+  .cat__wipBody {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--color-ink-muted);
+  }
+
+  .cat__wipLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--color-bg);
+    transition:
+      background-color 200ms var(--ease-out),
+      border-color 200ms var(--ease-out);
+  }
+
+  .cat__wipLink:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .cat__wipLink:hover .cat__btnArrow {
+    transform: translateX(2px);
+  }
+
+  /* — Líneas y productos — */
+
+  .cat__lines {
+    padding-block: var(--space-8);
+  }
+
+  .cat__line + .cat__line {
+    margin-top: var(--space-8);
+  }
+
+  .cat__lineHead {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-bottom: var(--space-5);
+    border-bottom: 1px solid var(--color-line);
+    scroll-margin-top: 6rem;
+  }
+
+  .cat__lineNum {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    color: var(--color-accent);
+    padding-top: 0.35rem;
+  }
+
+  .cat__lineTitle {
+    margin: 0;
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-ink);
+  }
+
+  .cat__lineDesc {
+    margin: var(--space-3) 0 0;
+    max-width: 68ch;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--color-ink-muted);
+  }
+
+  .cat__line {
+    scroll-margin-top: 5rem;
+  }
+
+  .cat__products {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cat__product {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: var(--space-6);
+    padding-block: var(--space-6);
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .cat__productId {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .cat__productCode {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .cat__productName {
+    margin: 0;
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--color-primary);
+  }
+
+  .cat__productBody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .cat__productSummary {
+    margin: 0;
+    max-width: 70ch;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: var(--color-ink);
+  }
+
+  .cat__block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .cat__blockLabel {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .cat__specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1px;
+    margin: 0;
+    background: var(--color-line);
+    border: 1px solid var(--color-line);
+  }
+
+  .cat__spec {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg);
+  }
+
+  .cat__specLabel {
+    font-size: 0.72rem;
+    color: var(--color-ink-muted);
+  }
+
+  .cat__specValue {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  .cat__apps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cat__app {
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-line);
+    font-size: 0.78rem;
+    color: var(--color-ink-muted);
+  }
+
+  /* — Normas — */
+
+  .cat__standards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-block: var(--space-7);
+  }
+
+  .cat__standardList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cat__standard {
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-primary);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+  }
+
+  .cat__disclaimer {
+    margin: 0;
+    max-width: 70ch;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    color: var(--color-ink-muted);
+  }
+
+  /* — Cierre — */
+
+  .cat__cta {
+    background: var(--color-primary);
+    color: #fff;
+    padding-block: var(--space-8);
+  }
+
+  .cat__ctaInner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  .cat__ctaHeading {
+    margin: 0;
+    font-size: var(--fs-xl);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .cat__ctaLead {
+    margin: var(--space-3) 0 0;
+    max-width: 56ch;
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  .cat__ctaActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .cat__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid transparent;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      background-color 200ms var(--ease-out),
+      border-color 200ms var(--ease-out),
+      color 200ms var(--ease-out);
+  }
+
+  .cat__btn--primary {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-primary-deep);
+  }
+
+  .cat__btn--primary:hover {
+    background: var(--color-accent-soft);
+    border-color: var(--color-accent-soft);
+  }
+
+  .cat__btn--ghost {
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+  }
+
+  .cat__btn--ghost:hover {
+    border-color: #fff;
+  }
+
+  .cat__btnArrow {
+    display: inline-block;
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .cat__btn:hover .cat__btnArrow,
+  .cat__otherLink:hover .cat__btnArrow {
+    transform: translateX(2px);
+  }
+
+  .cat__other {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding-block: var(--space-7);
+  }
+
+  .cat__otherList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .cat__otherLink {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    height: 100%;
+    padding: var(--space-4);
+    border: 1px solid var(--color-line);
+    text-decoration: none;
+    transition:
+      border-color 200ms var(--ease-out),
+      background-color 200ms var(--ease-out);
+  }
+
+  .cat__otherLink:hover {
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+  }
+
+  .cat__otherName {
+    font-size: var(--fs-md);
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  .cat__otherKicker {
+    grid-column: 1 / -1;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .cat__otherLink .cat__btnArrow {
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 900px) {
+    .cat__headGrid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cat__headAside {
+      order: -1;
+      max-width: 260px;
+    }
+
+    .cat__product {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    /* El casco pasa arriba del bloque: apilado sigue leyéndose primero. */
+    .cat__wipRow {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-5);
+    }
+
+    .cat__wipMark {
+      order: -1;
+    }
+
+    .cat__ctaInner {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .cat__stats {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+
+    .cat__lineHead {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-2);
+    }
+
+    .cat__index {
+      position: static;
+    }
+  }
+</style>
