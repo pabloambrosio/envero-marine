@@ -7,10 +7,15 @@ const t = useTranslations(lang);
 const homeHref = lang === "en" ? "/en/" : "/";
 const year = new Date().getFullYear();
 
-const navLinks: Array<{ key: TranslationKey; href: string }> = [
-  { key: "nav.services", href: "#servicios" },
-  { key: "nav.about", href: "#nosotros" },
-  { key: "nav.contact", href: "#contacto" },
+// El footer no usa dropdown: la columna "Navegar" lista las cinco secciones
+// planas. Los anchors se resuelven contra la home porque el footer también se
+// monta en /contact.
+const navLinks: Array<{ key: TranslationKey; hash: string }> = [
+  { key: "nav.item.metalurgia", hash: "#metalurgia" },
+  { key: "nav.item.naval", hash: "#naval" },
+  { key: "nav.item.brands", hash: "#marcas" },
+  { key: "nav.about", hash: "#nosotros" },
+  { key: "nav.contact", hash: "#contacto" },
 ];
 
 const brands = [
@@ -21,7 +26,7 @@ const brands = [
 ];
 ---
 
-<footer class="footer" id="contacto" aria-label={t("footer.aria")}>
+<footer class="footer" aria-label={t("footer.aria")}>
   <div class="footer__container">
     <div class="footer__top">
       <a class="footer__brand" href={homeHref} aria-label={t("nav.brandAria")}>
@@ -42,7 +47,7 @@ const brands = [
           {
             navLinks.map((link) => (
               <li>
-                <a class="footer__link" href={link.href}>
+                <a class="footer__link" href={`${homeHref}${link.hash}`}>
                   {t(link.key)}
                 </a>
               </li>

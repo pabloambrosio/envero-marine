@@ -7,10 +7,50 @@ const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
 const homeHref = lang === "en" ? "/en/" : "/";
 
-const links: Array<{ key: TranslationKey; href: string }> = [
-  { key: "nav.services", href: "#servicios" },
-  { key: "nav.about", href: "#nosotros" },
-  { key: "nav.contact", href: "#contacto" },
+interface ServiceItem {
+  key: TranslationKey;
+  descKey: TranslationKey;
+  hash: string;
+}
+
+interface ServiceGroup {
+  labelKey: TranslationKey;
+  items: ServiceItem[];
+}
+
+// Los anchors se resuelven contra la home: el navbar también se monta en
+// /contact, donde estas secciones no existen.
+const serviceGroups: ServiceGroup[] = [
+  {
+    labelKey: "nav.group.own",
+    items: [
+      {
+        key: "nav.item.metalurgia",
+        descKey: "nav.item.metalurgia.desc",
+        hash: "#metalurgia",
+      },
+      {
+        key: "nav.item.naval",
+        descKey: "nav.item.naval.desc",
+        hash: "#naval",
+      },
+    ],
+  },
+  {
+    labelKey: "nav.group.partner",
+    items: [
+      {
+        key: "nav.item.brands",
+        descKey: "nav.item.brands.desc",
+        hash: "#marcas",
+      },
+    ],
+  },
+];
+
+const directLinks: Array<{ key: TranslationKey; hash: string }> = [
+  { key: "nav.about", hash: "#nosotros" },
+  { key: "nav.contact", hash: "#contacto" },
 ];
 ---
 
@@ -21,14 +61,53 @@ const links: Array<{ key: TranslationKey; href: string }> = [
     </a>
 
     <nav class="nav__menu" aria-label={t("nav.menuLabel")}>
-      <ul>
-        {links.map((link) => (
-          <li>
-            <a href={link.href}>
-              <span class="nav__label">{t(link.key)}</span>
-            </a>
-          </li>
-        ))}
+      <ul class="nav__list">
+        <li class="nav__item nav__item--panel" data-nav-dropdown>
+          <button
+            type="button"
+            class="nav__trigger"
+            aria-expanded="false"
+            aria-controls="nav-services"
+            data-nav-trigger
+          >
+            <span>{t("nav.services")}</span>
+            <span class="nav__chevron" aria-hidden="true"></span>
+          </button>
+
+          <div
+            class="nav__panel"
+            id="nav-services"
+            aria-label={t("nav.services.panelAria")}
+          >
+            {
+              serviceGroups.map((group) => (
+                <section class="nav__group">
+                  <h2 class="nav__groupHead">{t(group.labelKey)}</h2>
+                  <ul class="nav__groupList">
+                    {group.items.map((item) => (
+                      <li>
+                        <a class="nav__service" href={`${homeHref}${item.hash}`}>
+                          <span class="nav__serviceName">{t(item.key)}</span>
+                          <span class="nav__serviceDesc">{t(item.descKey)}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))
+            }
+          </div>
+        </li>
+
+        {
+          directLinks.map((link) => (
+            <li class="nav__item">
+              <a class="nav__link" href={`${homeHref}${link.hash}`}>
+                {t(link.key)}
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </nav>
 
@@ -38,9 +117,142 @@ const links: Array<{ key: TranslationKey; href: string }> = [
         <span>{t("nav.cta")}</span>
         <span class="btn__arrow" aria-hidden="true">→</span>
       </a>
+      <button
+        type="button"
+        class="nav__toggle"
+        aria-expanded="false"
+        aria-controls="nav-mobile"
+        aria-label={t("nav.menu.open")}
+        data-nav-toggle
+        data-label-open={t("nav.menu.open")}
+        data-label-close={t("nav.menu.close")}
+      >
+        <span class="nav__toggleBar" aria-hidden="true"></span>
+        <span class="nav__toggleBar" aria-hidden="true"></span>
+      </button>
     </div>
   </div>
 </header>
+
+<!-- El overlay vive fuera del <header> a propósito: `backdrop-filter` en .nav
+     crea un bloque contenedor y un hijo `position: fixed` se posicionaría
+     contra la barra de 76px en vez del viewport. -->
+<div class="nav__mobile" id="nav-mobile" data-nav-mobile>
+  <nav class="container nav__mobileInner" aria-label={t("nav.menuLabel")}>
+    {
+      serviceGroups.map((group) => (
+        <section class="nav__group">
+          <h2 class="nav__groupHead">{t(group.labelKey)}</h2>
+          <ul class="nav__groupList">
+            {group.items.map((item) => (
+              <li>
+                <a class="nav__service" href={`${homeHref}${item.hash}`}>
+                  <span class="nav__serviceName">{t(item.key)}</span>
+                  <span class="nav__serviceDesc">{t(item.descKey)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+
+    <ul class="nav__mobileDirect">
+      {
+        directLinks.map((link) => (
+          <li>
+            <a class="nav__mobileLink" href={`${homeHref}${link.hash}`}>
+              {t(link.key)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <a href="/contact" class="btn btn--primary nav__mobileCta">
+      <span>{t("nav.cta")}</span>
+      <span class="btn__arrow" aria-hidden="true">→</span>
+    </a>
+  </nav>
+</div>
+
+<script>
+  // Dropdown de servicios (desktop) y panel de navegación (móvil).
+  // Ambos se cierran con Escape, al navegar y al hacer click fuera.
+  const header = document.querySelector<HTMLElement>(".nav");
+
+  if (header) {
+    const dropdown = header.querySelector<HTMLElement>("[data-nav-dropdown]");
+    const trigger = header.querySelector<HTMLButtonElement>("[data-nav-trigger]");
+    const toggle = header.querySelector<HTMLButtonElement>("[data-nav-toggle]");
+    // El overlay es hermano del header, no descendiente. Ver el comentario del markup.
+    const mobile = document.querySelector<HTMLElement>("[data-nav-mobile]");
+    const desktop = window.matchMedia("(min-width: 881px)");
+
+    const setDropdown = (open: boolean) => {
+      if (!dropdown || !trigger) return;
+      dropdown.classList.toggle("is-open", open);
+      trigger.setAttribute("aria-expanded", open ? "true" : "false");
+    };
+
+    const setMobile = (open: boolean) => {
+      if (!mobile || !toggle) return;
+      mobile.classList.toggle("is-open", open);
+      toggle.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      const label = open ? toggle.dataset.labelClose : toggle.dataset.labelOpen;
+      if (label) toggle.setAttribute("aria-label", label);
+      // Bloquea el scroll de fondo mientras el overlay está abierto.
+      document.documentElement.style.overflow = open ? "hidden" : "";
+    };
+
+    trigger?.addEventListener("click", () => {
+      setDropdown(!dropdown?.classList.contains("is-open"));
+    });
+
+    toggle?.addEventListener("click", () => {
+      setMobile(!mobile?.classList.contains("is-open"));
+    });
+
+    // Seguir un link cierra lo que esté abierto: los anchors no recargan.
+    dropdown?.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setDropdown(false));
+    });
+
+    mobile?.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => setMobile(false));
+    });
+
+    document.addEventListener("click", (e) => {
+      const target = e.target as Node;
+      if (dropdown && !dropdown.contains(target)) setDropdown(false);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      if (dropdown?.classList.contains("is-open")) {
+        setDropdown(false);
+        trigger?.focus();
+      }
+      if (mobile?.classList.contains("is-open")) {
+        setMobile(false);
+        toggle?.focus();
+      }
+    });
+
+    // Tabular fuera del dropdown lo cierra.
+    dropdown?.addEventListener("focusout", (e) => {
+      const next = e.relatedTarget as Node | null;
+      if (next && dropdown.contains(next)) return;
+      setDropdown(false);
+    });
+
+    // Volver a desktop descarta el overlay y su bloqueo de scroll.
+    desktop.addEventListener("change", (e) => {
+      if (e.matches) setMobile(false);
+    });
+  }
+</script>
 
 <style>
   .nav {
@@ -62,6 +274,9 @@ const links: Array<{ key: TranslationKey; href: string }> = [
     align-items: center;
     justify-content: space-between;
     gap: var(--space-6);
+    /* El menú se estira a la altura del header para que el panel cuelgue
+       exactamente del borde inferior. */
+    height: 100%;
   }
 
   .nav__brand {
@@ -75,27 +290,139 @@ const links: Array<{ key: TranslationKey; href: string }> = [
     width: auto;
   }
 
-  .nav__menu ul {
+  /* ── menú desktop ─────────────────────────────────────── */
+  .nav__menu {
+    align-self: stretch;
     display: flex;
-    align-items: center;
+  }
+
+  .nav__list {
+    display: flex;
+    align-items: stretch;
     gap: var(--space-7);
     list-style: none;
     margin: 0;
     padding: 0;
   }
 
-  .nav__menu a {
+  .nav__item {
+    display: flex;
+    align-items: center;
+  }
+
+  .nav__item--panel {
+    position: relative;
+  }
+
+  .nav__link,
+  .nav__trigger {
     display: inline-flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--space-2);
+    font-family: inherit;
     font-size: var(--fs-sm);
     font-weight: 500;
     color: var(--color-ink-muted);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
     transition: color 0.2s var(--ease-out);
   }
 
-  .nav__menu a:hover {
+  .nav__link:hover,
+  .nav__trigger:hover,
+  .nav__item--panel.is-open .nav__trigger {
     color: var(--color-primary);
+  }
+
+  .nav__chevron {
+    width: 6px;
+    height: 6px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform 0.16s var(--ease-out);
+  }
+
+  .nav__item--panel.is-open .nav__chevron {
+    transform: translateY(1px) rotate(-135deg);
+  }
+
+  /* ── panel del dropdown ───────────────────────────────── */
+  .nav__panel {
+    position: absolute;
+    top: 100%;
+    left: calc(var(--space-4) * -1);
+    min-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-5) var(--space-4) var(--space-5);
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    border-top: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition:
+      opacity 0.16s var(--ease-out),
+      transform 0.16s var(--ease-out),
+      visibility 0.16s;
+  }
+
+  .nav__item--panel.is-open .nav__panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  /* ── grupos (compartidos por dropdown y overlay) ──────── */
+  .nav__groupHead {
+    margin: 0 0 var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-line);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .nav__groupList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav__service {
+    display: block;
+    padding: var(--space-2) var(--space-3);
+    margin-inline: calc(var(--space-3) * -1);
+    transition: background-color 0.16s var(--ease-out);
+  }
+
+  .nav__service:hover {
+    background-color: rgba(14, 61, 52, 0.05);
+  }
+
+  .nav__serviceName {
+    display: block;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  .nav__serviceDesc {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: var(--color-ink-muted);
   }
 
   .nav__end {
@@ -104,8 +431,99 @@ const links: Array<{ key: TranslationKey; href: string }> = [
     gap: var(--space-4);
   }
 
+  /* ── botón de menú ────────────────────────────────────── */
+  .nav__toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .nav__toggleBar {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-ink);
+    transition: transform 0.18s var(--ease-out);
+  }
+
+  .nav__toggle.is-open .nav__toggleBar:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+
+  .nav__toggle.is-open .nav__toggleBar:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  /* ── overlay móvil ────────────────────────────────────── */
+  .nav__mobile {
+    position: fixed;
+    inset: var(--header-height) 0 0 0;
+    /* Justo debajo del header (10), por encima del contenido (máx. 4). */
+    z-index: 9;
+    background-color: var(--color-bg);
+    border-top: 1px solid var(--color-line);
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition:
+      opacity 0.2s var(--ease-out),
+      transform 0.2s var(--ease-out),
+      visibility 0.2s;
+  }
+
+  .nav__mobile.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .nav__mobileInner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .nav__mobileDirect {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    list-style: none;
+    margin: 0;
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .nav__mobileLink {
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  .nav__mobileCta {
+    align-self: flex-start;
+  }
+
   @media (max-width: 880px) {
     .nav__menu {
+      display: none;
+    }
+
+    .nav__toggle {
+      display: flex;
+    }
+  }
+
+  @media (min-width: 881px) {
+    .nav__mobile {
       display: none;
     }
   }
@@ -113,6 +531,16 @@ const links: Array<{ key: TranslationKey; href: string }> = [
   @media (max-width: 560px) {
     .nav__cta {
       display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav__panel,
+    .nav__mobile,
+    .nav__chevron,
+    .nav__toggleBar,
+    .nav__service {
+      transition: none;
     }
   }
 </style>
