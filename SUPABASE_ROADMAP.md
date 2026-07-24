@@ -21,18 +21,14 @@ Fuente de verdad de por dónde vamos con Supabase en este proyecto. Si entrás a
 
 ## Schema actual
 
-Seis tablas en `public`. Migración inicial: [`supabase/migrations/20260507173214_initial_schema.sql`](supabase/migrations/20260507173214_initial_schema.sql).
+Dos tablas en `public`, sin roles ni `app_user` — un solo admin fijo en `auth.users` (seedeado por `scripts/seed-admin.js`). Squash a este diseño reducido: [`supabase/migrations/20260723024338_appointment_only_schema.sql`](supabase/migrations/20260723024338_appointment_only_schema.sql) (ver [`docs/plans/2026-07-22-appointment-only-backend-design.md`](docs/plans/2026-07-22-appointment-only-backend-design.md)). `client`, `app_user`, `quiz`, `quiz_question` y el `message` original quedaron fuera de ese squash.
 
 | Tabla | Propósito | Notas |
 |---|---|---|
-| `app_user` | Staff interno (admin/vendor). | PK = FK a `auth.users(id)` con `on delete cascade`. `role` con check (`admin`/`vendor`). Renombrada de `user` por palabra reservada. |
-| `client` | Leads / visitantes. Sin auth. | Datos del form de contacto / quiz. |
-| `quiz` | Plantillas de quiz. | Metadata + versión + `active`. Preguntas viven aparte. |
-| `quiz_question` | Preguntas de un quiz. | `position int` ordena el quiz en el front (`ORDER BY position`). `type` es enum cerrado (`single_choice`/`multiple_choice`/`open_text`), `options text[]` lista las respuestas predefinidas, `allow_other bool` habilita el campo de respuesta abierta extra. CHECK cruzado fuerza la consistencia (open_text sin opciones, choice con ≥2). |
-| `appointment` | Citas y solicitudes de cita. | `status pending/confirmed/cancelled/completed`. La "solicitud" es un appointment con `status='pending'`. `quiz_snapshot jsonb` guarda preguntas + respuestas inmutables al momento de pedir. |
-| `message` | Formulario de contacto. | `handled_by` apunta al admin que respondió. |
+| `appointment` | Citas y solicitudes de cita. | `status pending/confirmed/cancelled`. La "solicitud" es un appointment con `status='pending'`. `name`/`email`(opcional)/`phone`/`company_name` viven directo en la tabla, sin `client` aparte. RLS: `anon` inserta pending, `authenticated` (el admin) lee/actualiza todo. |
+| `message` | Formulario de contacto del home. | Reinstalada en [`supabase/migrations/20260723234422_message_table.sql`](supabase/migrations/20260723234422_message_table.sql), sin `handled_by` (no hay `app_user` al que apuntar). RLS: `anon` inserta, `authenticated` lee. Sin endpoint admin todavía — falta panel para consultarlos. |
 
-Trigger `set_updated_at` aplicado a `app_user`, `quiz`, `quiz_question`, `appointment`.
+Trigger `set_updated_at` aplicado a `appointment`. GRANTs de base (`select/insert/update/delete` a `anon`/`authenticated`/`service_role`) los cubre `alter default privileges` en [`supabase/migrations/20260723193932_appointment_grants.sql`](supabase/migrations/20260723193932_appointment_grants.sql) — aplica automáticamente a cualquier tabla nueva creada por `postgres` en `public`, `message` incluida.
 
 ## Decisiones tomadas
 
@@ -135,8 +131,9 @@ Endpoints sin body (logout, etc.) saltean el `validateBody` y van directo a comp
 - [x] Módulo `client` (lead/CRM): `/api/admin/clients` (POST create) — tabla deliberadamente laxa, sin uniques, indexada en `email`/`phone`/`company_name`/`name`/`created_at`. Anon insert habilitado vía RLS para el flujo público anónimo (futuro).
 - [x] Frontend admin completo bajo `/admin/*`: login + dashboard read-only con conteos, CRUDs de usuarios/quizzes/preguntas (drag&drop reorder con HTML5 nativo + rollback optimista)/citas (alta manual con orquestación cliente→cita en dos llamadas). Layout con sidebar persistente. Helpers en [`src/admin/`](src/admin/) (`guard.ts`, `api.ts`, `format.ts`). Estilos compartidos en [`src/styles/admin.css`](src/styles/admin.css).
 - [ ] Tipos TS generados (`yarn supabase gen types typescript --local > src/lib/supabase/database.types.ts`)
-- [ ] Endpoint público `POST /api/appointments` (anon) que orqueste cliente + cita para el flujo del quiz público
-- [ ] Endpoint `GET /api/admin/clients/[id]` y/o list, si en algún momento queremos navegar leads desde el admin
+- [x] Endpoint público `POST /api/appointments` (anon) para el wizard de citas del home
+- [x] Tabla `message` reinstalada + endpoint público `POST /api/messages` (anon) para el form de contacto del home. Módulo en [`src/modules/message/`](src/modules/message/).
+- [ ] Vista admin para consultar mensajes de contacto — hoy `message` solo se escribe, nadie la lee desde la UI (no hay `/admin/messages` ni `GET /api/admin/messages`)
 - [ ] Env vars de prod en Cloudflare Workers Secrets (URL, publishable, secret) — jamás commit
 
 ## Pre-prod checklist
