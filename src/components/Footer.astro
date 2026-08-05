@@ -1,4 +1,5 @@
 ---
+import Icon from "./Icon.astro";
 import { resolveLang, useTranslations } from "../i18n/utils";
 import type { TranslationKey } from "../i18n/ui";
 
@@ -31,9 +32,13 @@ const brands = [
     <div class="footer__top">
       <a class="footer__brand" href={homeHref} aria-label={t("nav.brandAria")}>
         <img
-          src="/logos/envero.png"
+          src="/logos/envero.webp"
           alt="Envero Marine"
           class="footer__brandImg"
+          width="480"
+          height="269"
+          loading="lazy"
+          decoding="async"
         />
       </a>
       <p class="footer__tagline">{t("footer.tagline")}</p>
@@ -64,7 +69,7 @@ const brands = [
               class="footer__link"
               href={`mailto:${t("footer.contact.email")}`}
             >
-              <i class="fa-solid fa-envelope footer__icon" aria-hidden="true"></i>
+              <Icon name="envelope" class="footer__icon" />
               {t("footer.contact.email")}
             </a>
           </li>
@@ -75,7 +80,7 @@ const brands = [
               target="_blank"
               rel="noopener noreferrer"
             >
-              <i class="fa-brands fa-whatsapp footer__icon" aria-hidden="true"></i>
+              <Icon name="whatsapp" style="brands" class="footer__icon" />
               {t("footer.contact.whatsapp")}
             </a>
           </li>
@@ -86,7 +91,7 @@ const brands = [
               target="_blank"
               rel="noopener noreferrer"
             >
-              <i class="fa-solid fa-globe footer__icon" aria-hidden="true"></i>
+              <Icon name="globe" class="footer__icon" />
               {t("footer.contact.web")}
             </a>
           </li>

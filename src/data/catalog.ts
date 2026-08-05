@@ -237,7 +237,7 @@ export const catalogBrands: CatalogBrand[] = [
   {
     slug: "current-technology",
     name: "Current Technology",
-    logo: "/logos/current-technology.png",
+    logo: "/logos/current-technology.webp",
     status: "wip",
     kicker: {
       es: "Marca representada · Calidad de energía",

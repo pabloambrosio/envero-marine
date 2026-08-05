@@ -1,26 +1,28 @@
 ---
+import Icon from "./Icon.astro";
+import { faIconMarkup, type FaIconName } from "../icons/fa";
 import { sections } from "../data/sections";
 import { resolveLang, useTranslations } from "../i18n/utils";
 
 const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
 
-const icons: Record<string, string> = {
-  totalenergies: "fa-droplet",
-  "current-technology": "fa-bolt",
-  qer: "fa-flask",
-  fonroche: "fa-solar-panel",
-  "estructuras-metalicas": "fa-industry",
-  "ingenieria-naval": "fa-ship",
+const icons: Record<string, FaIconName> = {
+  totalenergies: "droplet",
+  "current-technology": "bolt",
+  qer: "flask",
+  fonroche: "solar-panel",
+  "estructuras-metalicas": "industry",
+  "ingenieria-naval": "ship",
 };
 
 const logos: Record<string, string> = {
   totalenergies: "/logos/totalenergies.svg",
-  "current-technology": "/logos/current-technology.png",
+  "current-technology": "/logos/current-technology.webp",
   fonroche: "/logos/fonroche.webp",
   qer: "/logos/qer.png",
-  "estructuras-metalicas": "/logos/envero.png",
-  "ingenieria-naval": "/logos/envero.png",
+  "estructuras-metalicas": "/logos/envero.webp",
+  "ingenieria-naval": "/logos/envero.webp",
 };
 
 const titlesByLang: Record<string, Record<"es" | "en", string>> = {
@@ -43,7 +45,7 @@ const modalData = sections.map((section) => ({
   isOwnService: section.isOwnService,
   offerings: section.offerings,
   logo: logos[section.id] ?? null,
-  iconClass: icons[section.id] ?? "fa-bolt",
+  iconSvg: faIconMarkup(icons[section.id] ?? "bolt"),
   kindLabel: section.isOwnService
     ? t("services.kind.own")
     : t("services.kind.partner"),
@@ -74,7 +76,7 @@ const expandLabels = {
           const title = titlesByLang[section.id]?.[lang] ?? section.title;
           const preview = section.offerings.slice(0, PREVIEW_OFFERINGS);
           const remaining = section.offerings.length - preview.length;
-          const iconClass = icons[section.id] ?? "fa-bolt";
+          const iconClass = icons[section.id] ?? "bolt";
           const logo = logos[section.id];
           return (
             <li
@@ -100,7 +102,7 @@ const expandLabels = {
                   ) : (
                     <>
                       <span class="services__mediaIcon">
-                        <i class={`fa-solid ${iconClass}`} aria-hidden="true" />
+                        <Icon name={iconClass} />
                       </span>
                       <span class="services__mediaLabel">{t("services.placeholder")}</span>
                       <span class="services__mediaId">{section.id}</span>
@@ -238,10 +240,7 @@ const expandLabels = {
         img.decoding = "async";
         artEl.appendChild(img);
       } else {
-        const icon = document.createElement("i");
-        icon.className = `fa-solid ${data.iconClass}`;
-        icon.setAttribute("aria-hidden", "true");
-        artEl.appendChild(icon);
+        artEl.innerHTML = data.iconSvg;
       }
 
       offeringsEl.innerHTML = "";

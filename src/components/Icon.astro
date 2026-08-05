@@ -1,0 +1,25 @@
+---
+// SVG inline en reemplazo del webfont de Font Awesome.
+//
+// Conserva las clases `fa-solid` / `fa-brands` a propósito: varias hojas de estilo
+// scoped ya apuntan a `:global(.fa-solid)` para fijar el `font-size` del icono
+// (Reasons, Features, Services). Manteniendo la clase, esas reglas siguen
+// funcionando sin tocarlas. El dimensionado real vive en `.fa-icon` (global.css).
+import { FA_ICONS, type FaIconName } from "../icons/fa";
+
+interface Props {
+  name: FaIconName;
+  class?: string;
+  style?: "solid" | "brands";
+}
+
+const { name, class: className, style = "solid" } = Astro.props;
+const icon = FA_ICONS[name];
+const classes = ["fa-icon", style === "brands" ? "fa-brands" : "fa-solid", className]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<svg class={classes} viewBox={icon.viewBox} aria-hidden="true" focusable="false">
+  <path d={icon.d} />
+</svg>

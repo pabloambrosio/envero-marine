@@ -1,4 +1,5 @@
 ---
+import Icon from "../Icon.astro";
 import { resolveLang, useTranslations } from "../../i18n/utils";
 import {
   catalogBrands,
@@ -116,7 +117,7 @@ const otherBrands = catalogBrands.filter((b) => b.slug !== brand.slug);
             </span>
           </a>
         </section>
-        <i class="fa-solid fa-helmet-safety cat__wipMark" aria-hidden="true" />
+        <Icon name="helmet-safety" class="cat__wipMark" />
       </div>
     )
   }

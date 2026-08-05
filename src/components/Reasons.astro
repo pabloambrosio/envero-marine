@@ -1,18 +1,20 @@
 ---
+import Icon from "./Icon.astro";
+import type { FaIconName } from "../icons/fa";
 import { reasons } from "../data/reasons";
 import { resolveLang, useTranslations } from "../i18n/utils";
 
 const lang = resolveLang(Astro.currentLocale);
 const t = useTranslations(lang);
 
-const icons: Record<string, string> = {
-  badge: "fa-certificate",
-  layers: "fa-layer-group",
-  compass: "fa-location-dot",
-  shield: "fa-shield-halved",
-  sun: "fa-solar-panel",
-  anchor: "fa-anchor",
-  structure: "fa-industry",
+const icons: Record<string, FaIconName> = {
+  badge: "certificate",
+  layers: "layer-group",
+  compass: "location-dot",
+  shield: "shield-halved",
+  sun: "solar-panel",
+  anchor: "anchor",
+  structure: "industry",
 };
 ---
 
@@ -35,7 +37,7 @@ const icons: Record<string, string> = {
                 <div class="reasons__cardFront">
                   <div class="reasons__cardHead">
                     <span class="reasons__icon" aria-hidden="true">
-                      <i class={`fa-solid ${iconClass}`} aria-hidden="true" />
+                      <Icon name={iconClass} />
                     </span>
                   </div>
                   <h3 class="reasons__title">

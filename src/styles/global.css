@@ -173,3 +173,18 @@ p {
 .stack-overlap > section:nth-of-type(3) { z-index: 2; }
 .stack-overlap > section:nth-of-type(4) { z-index: 3; }
 .stack-overlap > section:nth-of-type(5) { z-index: 4; }
+
+/* Iconos SVG inline (reemplazan el webfont de Font Awesome).
+   Replica el dimensionado propio de FA para su versión SVG: la altura sigue al
+   font-size heredado y el ancho sale del viewBox, así los glifos conservan la
+   proporción que tenían con el webfont.
+   Especificidad deliberadamente baja (0,1,0) para que cualquier regla scoped de
+   componente —p. ej. el `display: block` de .cat__wipMark— siga ganando. */
+.fa-icon {
+  display: inline-block;
+  height: 1em;
+  width: auto;
+  vertical-align: -0.125em;
+  overflow: visible;
+  fill: currentColor;
+}

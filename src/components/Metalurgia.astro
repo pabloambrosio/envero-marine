@@ -62,9 +62,9 @@ const cells = [
 ];
 
 const gallery = [
-  { src: "/metalurgia/ahsanization-mJi2I9KJPQ8-unsplash.jpg", alt: "" },
-  { src: "/metalurgia/jason-richard-Hlhc8gQUW6I-unsplash.jpg", alt: "" },
-  { src: "/metalurgia/morteza-mohammadi-ZkvJnta6bAI-unsplash.jpg", alt: "" },
+  { src: "/metalurgia/ahsanization-mJi2I9KJPQ8-unsplash.webp", alt: "", width: 1400, height: 904 },
+  { src: "/metalurgia/jason-richard-Hlhc8gQUW6I-unsplash.webp", alt: "", width: 1400, height: 933 },
+  { src: "/metalurgia/morteza-mohammadi-ZkvJnta6bAI-unsplash.webp", alt: "", width: 933, height: 1400 },
 ];
 ---
 
@@ -118,8 +118,8 @@ const gallery = [
                 alt={img.alt}
                 loading="lazy"
                 decoding="async"
-                width="800"
-                height="600"
+                width={img.width}
+                height={img.height}
               />
             ))
           }

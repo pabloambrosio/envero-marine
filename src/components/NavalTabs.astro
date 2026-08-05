@@ -13,7 +13,9 @@ const panels = [
     id: "naval-panel-a",
     tabId: "naval-tab-a",
     label: t("naval.tab.a"),
-    img: "/naval/osv-pemex-blueprint.jpeg",
+    img: "/naval/osv-pemex-blueprint.webp",
+    imgWidth: 1080,
+    imgHeight: 1080,
     imgAlt: t("naval.imageAlt"),
     nodes: [
       { side: "left", row: 1, title: t("naval.nodeA.01.title"), desc: t("naval.nodeA.01.desc") },
@@ -28,7 +30,9 @@ const panels = [
     id: "naval-panel-b",
     tabId: "naval-tab-b",
     label: t("naval.tab.b"),
-    img: "/naval/camaronero-blueprint.jpeg",
+    img: "/naval/camaronero-blueprint.webp",
+    imgWidth: 1080,
+    imgHeight: 1080,
     imgAlt: t("naval.imageAltB"),
     nodes: [
       { side: "left", row: 1, title: t("naval.nodeB.01.title"), desc: t("naval.nodeB.01.desc") },
@@ -111,8 +115,8 @@ const tabs = panels.map((p) => ({ id: p.tabId, panel: p.id, label: p.label }));
                   alt={panel.imgAlt}
                   loading="lazy"
                   decoding="async"
-                  width="1200"
-                  height="900"
+                  width={panel.imgWidth}
+                  height={panel.imgHeight}
                 />
               </figure>
             </div>

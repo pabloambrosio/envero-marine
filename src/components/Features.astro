@@ -1,4 +1,6 @@
 ---
+import Icon from "./Icon.astro";
+import type { FaIconName } from "../icons/fa";
 import { resolveLang } from "../i18n/utils";
 import type { Lang } from "../i18n/ui";
 
@@ -13,7 +15,7 @@ interface Logo {
 
 interface Feature {
   id: string;
-  icon?: string;
+  icon?: FaIconName;
   logos?: Logo[];
   featured?: boolean;
   title: LocalizedString;
@@ -24,7 +26,7 @@ const features: Feature[] = [
   
   {
     id: "business-engineering",
-    icon: "fa-gears",
+    icon: "gears",
     title: {
       es: "Ingeniería especializada",
       en: "Specialized engineering",
@@ -39,7 +41,7 @@ const features: Feature[] = [
     featured: true,
     logos: [
       { src: "/logos/totalenergies.svg", alt: "TotalEnergies" },
-      { src: "/logos/current-technology.png", alt: "Current Technology" },
+      { src: "/logos/current-technology.webp", alt: "Current Technology" },
       { src: "/logos/qer.png", alt: "Qer" },
       { src: "/logos/fonroche.webp", alt: "Fonroche Lighting America" },
     ],
@@ -54,7 +56,7 @@ const features: Feature[] = [
   },
   {
     id: "project",
-    icon: "fa-compass-drafting",
+    icon: "compass-drafting",
     title: {
       es: "Desarrollo de proyectos",
       en: "Project development",
@@ -103,7 +105,7 @@ const aria: LocalizedString = {
               </div>
             ) : (
               <span class="features__icon" aria-hidden="true">
-                <i class={`fa-solid ${feature.icon}`} aria-hidden="true" />
+                <Icon name={feature.icon!} />
               </span>
             )}
             <h3 class="features__title">{feature.title[lang]}</h3>
