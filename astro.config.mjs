@@ -6,6 +6,11 @@ import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
+  // URL canónica del sitio. Necesaria para que las URLs absolutas de Open Graph
+  // y el canonical se generen bien — sin esto los previews sociales no cargan.
+  // OJO: cambiar por el dominio propio en cuanto exista.
+  site: "https://envero-marine.pabloambrosio91.workers.dev",
+
   output: "server",
 
   adapter: cloudflare({

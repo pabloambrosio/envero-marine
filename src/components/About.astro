@@ -27,8 +27,16 @@ const t = useTranslations(lang);
         <p class="about__cellBody">{t("about.vision.body")}</p>
       </article>
 
-      <article class="about__cell about__cell--img">
-        <img src="/about/equipo.jpg" alt="imagen de prueba">
+      <article class="about__cell about__cell--brand">
+        <img
+          class="about__brandMark"
+          src="/logos/envero.webp"
+          alt="Envero Marine"
+          width="480"
+          height="269"
+          loading="lazy"
+          decoding="async"
+        />
       </article>
 
       <!-- <dl class="about__cell about__cell--meta">
@@ -78,9 +86,8 @@ const t = useTranslations(lang);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-areas:
-      "intro   intro   image"
-      "intro   intro   image"
-      "mission vision  image";
+      "intro   intro   brand"
+      "mission vision  brand";
     gap: 1px;
     background: var(--color-line);
     border: 1px solid var(--color-line);
@@ -143,19 +150,22 @@ const t = useTranslations(lang);
     grid-area: vision;
   }
 
-  .about__cell--img {
-    grid-area: image;
-    /* min-height: 100%; */
-    min-height: 700px;
-    padding: var(--space-2);
+  /* ── brand cell ───────────────────────────────────────── */
+  /* Ocupaba la foto de equipo. El logo no se recorta: va contenido y
+     centrado, sobre crema para separarlo de las celdas blancas. */
+  .about__cell--brand {
+    grid-area: brand;
+    background: var(--color-bg);
     display: grid;
     place-items: center;
-    > img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: 45% center;
-    }
+    padding: var(--space-7) var(--space-6);
+  }
+
+  .about__brandMark {
+    width: 100%;
+    max-width: 260px;
+    height: auto;
+    object-fit: contain;
   }
 
   .about__cell--mission::before,
@@ -244,11 +254,17 @@ const t = useTranslations(lang);
       grid-template-areas:
         "intro intro"
         "mission vision"
+        "brand brand"
         "meta meta";
     }
 
     .about__cell {
       padding: var(--space-5);
+    }
+
+    /* En una fila propia ya no necesita altura de columna. */
+    .about__cell--brand {
+      padding: var(--space-6);
     }
 
     .about__heading {
@@ -272,11 +288,20 @@ const t = useTranslations(lang);
         "intro"
         "mission"
         "vision"
+        "brand"
         "meta";
     }
 
     .about__cell {
       padding: var(--space-4);
+    }
+
+    .about__cell--brand {
+      padding: var(--space-5);
+    }
+
+    .about__brandMark {
+      max-width: 200px;
     }
 
     .about__cell--intro {

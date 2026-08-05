@@ -310,6 +310,8 @@ export const ui = {
       "No pudimos registrar tu solicitud. Intenta de nuevo.",
     "meta.title": "Envero Marine — Outstanding Services",
     "meta.description": "Servicios marinos e industriales de excelencia.",
+    "meta.ogImageAlt":
+      "Envero Marine — Ingeniería y confiabilidad industrial. Sede en Cd. del Carmen, cobertura Golfo de México y Sureste.",
   },
   en: {
     "nav.services": "Services",
@@ -620,6 +622,8 @@ export const ui = {
       "We couldn't register your request. Try again.",
     "meta.title": "Envero Marine — Outstanding Services",
     "meta.description": "Outstanding marine and industrial services.",
+    "meta.ogImageAlt":
+      "Envero Marine — Industrial engineering & reliability. Based in Cd. del Carmen, covering the Gulf of Mexico and Southeast.",
   },
 } as const;
 
