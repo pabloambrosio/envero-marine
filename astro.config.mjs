@@ -33,20 +33,12 @@ export default defineConfig({
     service: passthroughImageService(),
   },
 
-  // Las claves de Supabase se declaran acá para que Astro las valide en el build
-  // y las tipe. SUPABASE_SECRET_KEY es `secret`: NO se hornea en el bundle, se
-  // lee de process.env en runtime (variables de entorno de la app en cPanel).
+  // DATABASE_URL se declara acá para que Astro la valide y tipe. Es `secret`:
+  // NO se hornea en el bundle, se lee de process.env en runtime (variables de
+  // entorno de la app Node en cPanel). Si falta al arrancar, falla explícito.
   env: {
     schema: {
-      PUBLIC_SUPABASE_URL: envField.string({
-        context: "server",
-        access: "public",
-      }),
-      PUBLIC_SUPABASE_PUBLISHABLE_KEY: envField.string({
-        context: "server",
-        access: "public",
-      }),
-      SUPABASE_SECRET_KEY: envField.string({
+      DATABASE_URL: envField.string({
         context: "server",
         access: "secret",
       }),

@@ -1,16 +1,18 @@
-import type { createSupabaseServerClient } from "../../../lib/supabase/server";
+import type { AuthRepository } from "../../../lib/db/ports/auth-repository";
+import { hashSessionToken } from "../../../lib/session";
 import type { LogoutResult } from "../types/logout";
 
-type SupabaseServerClient = ReturnType<typeof createSupabaseServerClient>;
-
 export async function logout(
-  supabase: SupabaseServerClient,
+  sessionToken: string,
+  auth: AuthRepository,
 ): Promise<LogoutResult> {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    return { ok: false, error: error.message };
+  try {
+    await auth.deleteSession(hashSessionToken(sessionToken));
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "unknown_error",
+    };
   }
-
-  return { ok: true };
 }

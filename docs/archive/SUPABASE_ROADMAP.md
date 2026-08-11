@@ -1,4 +1,10 @@
-# Supabase roadmap
+# Supabase roadmap (ARCHIVADO)
+
+> **Archivado el 2026-08-11.** El proyecto migró a MySQL en HostGator con
+> Prisma y patrón repositorio — ver [`DATABASE.md`](../../DATABASE.md) y
+> [`docs/plans/2026-08-11-mysql-repository-pattern-design.md`](../plans/2026-08-11-mysql-repository-pattern-design.md).
+> Se conserva como referencia de las decisiones de la etapa Supabase (el
+> directorio `supabase/` con las migraciones vive en la historia de git).
 
 Fuente de verdad de por dónde vamos con Supabase en este proyecto. Si entrás a tocar cualquier cosa de auth, schema, migraciones, RLS, cliente JS, adapter SSR o seeds, leelo antes — te ahorra preguntar lo mismo dos veces y romper decisiones que ya tomamos.
 

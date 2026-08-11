@@ -1,17 +1,15 @@
-import type { createSupabaseServerClient } from "../../../lib/supabase/server";
+import type { AppointmentRepository } from "../../../lib/db/ports/appointment-repository";
 import type {
   RequestAppointmentRequest,
   RequestAppointmentResult,
 } from "../types/request";
 import { createAppointment } from "./create";
 
-type SupabaseServerClient = ReturnType<typeof createSupabaseServerClient>;
-
 // Flujo público anónimo: crea la cita directo, sin tabla client de por
 // medio. Fuerza status pending — el visitante nunca puede mandar otro.
 export async function requestAppointment(
   input: RequestAppointmentRequest,
-  supabase: SupabaseServerClient,
+  appointments: AppointmentRepository,
 ): Promise<RequestAppointmentResult> {
   const apptResult = await createAppointment(
     {
@@ -25,7 +23,7 @@ export async function requestAppointment(
         : {}),
       ...(input.notes !== undefined ? { notes: input.notes } : {}),
     },
-    supabase,
+    appointments,
   );
 
   if (!apptResult.ok) {

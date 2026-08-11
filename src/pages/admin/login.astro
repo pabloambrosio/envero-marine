@@ -1,17 +1,18 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import { createSupabaseServerClient } from "../../lib/supabase/server";
+import { getRepositories } from "../../lib/db";
+import { SESSION_COOKIE, hashSessionToken } from "../../lib/session";
 
-const supabase = createSupabaseServerClient({
-  request: Astro.request,
-  cookies: Astro.cookies,
-});
+// /admin/login es excepción pública del middleware, así que la sesión se
+// resuelve acá: con sesión válida no tiene sentido mostrar el form.
+const sessionToken = Astro.cookies.get(SESSION_COOKIE)?.value;
+const session = sessionToken
+  ? await getRepositories().auth.getSessionWithUser(
+      hashSessionToken(sessionToken),
+    )
+  : null;
 
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-
-if (user) {
+if (session) {
   return Astro.redirect("/admin");
 }
 

@@ -11,25 +11,35 @@
     "start": "node ./dist/server/entry.mjs",
     "preview": "astro preview",
     "astro": "astro",
+    "postinstall": "prisma generate || echo 'prisma CLI ausente (install de prod): generate no hace falta, el client ya viene bundleado en dist/'",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "test": "vitest run",
     "seed:admin": "node --env-file=.env scripts/seed-admin.js",
     "og": "node scripts/build-og.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.0",
     "@astrojs/react": "^6.0.1",
-    "@supabase/ssr": "^0.10.3",
-    "@supabase/supabase-js": "^2.105.3",
+    "@prisma/adapter-mariadb": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "astro": "^7.0.9",
+    "bcryptjs": "^3.0.3",
+    "mariadb": "^3.5.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "prisma": "^7.9.1",
     "sharp": "^0.35.3",
-    "supabase": "^2.98.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
   }
 }

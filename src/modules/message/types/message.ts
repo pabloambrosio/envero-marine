@@ -1,4 +1,8 @@
 import { z } from "zod";
+import type { AppMessage } from "../../../lib/db/ports/message-repository";
+
+// El tipo de dominio vive en el puerto; acá queda el schema Zod del request.
+export type { AppMessage } from "../../../lib/db/ports/message-repository";
 
 export const CreateMessageSchema = z.object({
   name: z.string().min(1),
@@ -9,16 +13,6 @@ export const CreateMessageSchema = z.object({
 });
 
 export type CreateMessageRequest = z.infer<typeof CreateMessageSchema>;
-
-export interface AppMessage {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  company_name: string | null;
-  message: string;
-  created_at: string;
-}
 
 export type MessageResult =
   | { ok: true; message: AppMessage }

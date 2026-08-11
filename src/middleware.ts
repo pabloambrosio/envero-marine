@@ -1,6 +1,7 @@
 import { defineMiddleware } from "astro:middleware";
+import { getRepositories } from "./lib/db";
 import { json } from "./lib/http";
-import { createSupabaseServerClient } from "./lib/supabase/server";
+import { SESSION_COOKIE, hashSessionToken } from "./lib/session";
 
 const PROTECTED_PREFIXES = ["/admin", "/api/admin"];
 
@@ -24,23 +25,22 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  const supabase = createSupabaseServerClient({
-    request: context.request,
-    cookies: context.cookies,
-  });
+  // Antes esto era supabase.auth.getUser() — un network call de 50-150ms.
+  // Ahora es una query local a `session` con el hash del token de la cookie.
+  const sessionToken = context.cookies.get(SESSION_COOKIE)?.value;
+  const session = sessionToken
+    ? await getRepositories().auth.getSessionWithUser(
+        hashSessionToken(sessionToken),
+      )
+    : null;
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
+  if (!session) {
     if (pathname.startsWith("/api/")) {
       return json({ error: "unauthorized" }, 401);
     }
     return context.redirect("/admin/login");
   }
 
-  context.locals.user = user;
+  context.locals.user = session.user;
   return next();
 });

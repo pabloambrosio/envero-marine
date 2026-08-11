@@ -1,31 +1,22 @@
-import type { createSupabaseServerClient } from "../../../lib/supabase/server";
+import type { AppointmentRepository } from "../../../lib/db/ports/appointment-repository";
 import type {
-  AppAppointment,
   AppointmentResult,
   UpdateAppointmentRequest,
 } from "../types/appointment";
 
-type SupabaseServerClient = ReturnType<typeof createSupabaseServerClient>;
-
 export async function updateAppointment(
   id: string,
   input: UpdateAppointmentRequest,
-  supabase: SupabaseServerClient,
+  appointments: AppointmentRepository,
 ): Promise<AppointmentResult> {
-  const { data, error } = await supabase
-    .from("appointment")
-    .update(input)
-    .eq("id", id)
-    .select()
-    .maybeSingle();
-
-  if (error) {
-    return { ok: false, error: error.message };
+  try {
+    const appointment = await appointments.update(id, input);
+    if (!appointment) return { ok: false, error: "not_found" };
+    return { ok: true, appointment };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "unknown_error",
+    };
   }
-
-  if (!data) {
-    return { ok: false, error: "not_found" };
-  }
-
-  return { ok: true, appointment: data as AppAppointment };
 }

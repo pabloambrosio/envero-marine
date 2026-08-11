@@ -2,6 +2,8 @@
 dist/
 # generated types
 .astro/
+# prisma client generado (lo recrea `postinstall`)
+src/generated/
 # cloudflare workers local state (miniflare/wrangler)
 .wrangler/
 

@@ -1,25 +1,17 @@
-import type { createSupabaseServerClient } from "../../../lib/supabase/server";
-import type {
-  AppMessage,
-  CreateMessageRequest,
-  MessageResult,
-} from "../types/message";
-
-type SupabaseServerClient = ReturnType<typeof createSupabaseServerClient>;
+import type { MessageRepository } from "../../../lib/db/ports/message-repository";
+import type { CreateMessageRequest, MessageResult } from "../types/message";
 
 export async function createMessage(
   input: CreateMessageRequest,
-  supabase: SupabaseServerClient,
+  messages: MessageRepository,
 ): Promise<MessageResult> {
-  const { data, error } = await supabase
-    .from("message")
-    .insert(input)
-    .select()
-    .single();
-
-  if (error) {
-    return { ok: false, error: error.message };
+  try {
+    const message = await messages.create(input);
+    return { ok: true, message };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : "unknown_error",
+    };
   }
-
-  return { ok: true, message: data as AppMessage };
 }

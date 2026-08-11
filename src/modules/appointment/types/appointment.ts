@@ -1,4 +1,13 @@
 import { z } from "zod";
+import type { AppAppointment } from "../../../lib/db/ports/appointment-repository";
+
+// Los tipos de dominio viven en el puerto (src/lib/db/ports); acá quedan los
+// schemas Zod de validación de requests y se re-exporta el dominio para que
+// el resto del código siga importando desde el módulo.
+export type {
+  AppAppointment,
+  AppointmentStatus,
+} from "../../../lib/db/ports/appointment-repository";
 
 export const AppointmentStatusSchema = z.enum([
   "pending",
@@ -32,22 +41,8 @@ export const UpdateAppointmentSchema = z
     { message: "at least one field must be provided" },
   );
 
-export type AppointmentStatus = z.infer<typeof AppointmentStatusSchema>;
 export type CreateAppointmentRequest = z.infer<typeof CreateAppointmentSchema>;
 export type UpdateAppointmentRequest = z.infer<typeof UpdateAppointmentSchema>;
-
-export interface AppAppointment {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string;
-  company_name: string | null;
-  appointment_date: string;
-  status: AppointmentStatus;
-  notes: string | null;
-  created_at: string;
-  updated_at: string;
-}
 
 export type AppointmentResult =
   | { ok: true; appointment: AppAppointment }

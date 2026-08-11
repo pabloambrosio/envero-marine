@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
+import { getRepositories } from "../../../lib/db";
 import { json, validateBody } from "../../../lib/http";
-import { createSupabaseServerClient } from "../../../lib/supabase/server";
+import { SESSION_COOKIE, sessionCookieOptions } from "../../../lib/session";
 import { login } from "../../../modules/auth/services/login";
 import { LoginSchema } from "../../../modules/auth/types/login";
 
@@ -10,10 +11,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const validated = await validateBody(request, LoginSchema);
   if (!validated.ok) return validated.response;
 
-  const supabase = createSupabaseServerClient({ request, cookies });
-  const result = await login(validated.data, supabase);
+  const result = await login(validated.data, getRepositories().auth);
 
-  return result.ok
-    ? json({ user: result.user })
-    : json({ error: result.error }, 401);
+  if (!result.ok) {
+    return json({ error: result.error }, 401);
+  }
+
+  cookies.set(
+    SESSION_COOKIE,
+    result.sessionToken,
+    sessionCookieOptions(result.expiresAt),
+  );
+  return json({ user: result.user });
 };
