@@ -98,7 +98,7 @@ const STATUS_BADGE: Record<AppointmentStatus, string> = {
             {appointmentResult.ok === false && appointmentResult.status > 0
               ? ` (${appointmentResult.status})`
               : " de red"}
-            . Reintentá la carga.
+            . Reintenta la carga.
           </p>
           <a class="adminState__retry" href={`/admin/appointments/${id}`}>
             Reintentar →

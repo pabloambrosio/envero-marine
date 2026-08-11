@@ -14,7 +14,7 @@ const pathname = Astro.url.pathname;
 const navItems = [
   { num: "00", href: "/admin", label: "Inicio" },
   { num: "01", href: "/admin/appointments", label: "Citas" },
-  // El middleware bloquea /admin/users para no-admins; acá solo se oculta.
+  // El middleware bloquea /admin/users para no-admins; aquí solo se oculta.
   ...(isAdmin ? [{ num: "02", href: "/admin/users", label: "Usuarios" }] : []),
 ];
 

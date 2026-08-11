@@ -29,7 +29,7 @@ if (!result.ok && result.status === 404) {
 
 const user = result.ok ? result.data.user : null;
 
-// El server rechaza igual (cannot_modify_self); deshabilitar acá solo evita
+// El server rechaza igual (cannot_modify_self); deshabilitar aquí solo evita
 // el viaje al error.
 const isSelf = user?.id === guard.admin.id;
 ---
@@ -40,8 +40,8 @@ const isSelf = user?.id === guard.admin.id;
       <span class="adminPage__eyebrow">02 / Usuarios · Editar</span>
       <h1 class="adminPage__title">{user ? user.name || user.email : "Editar usuario"}</h1>
       <p class="adminPage__lead">
-        Datos de la cuenta, rol y estado. Para resetear la password definí una
-        nueva y comunicásela por fuera.
+        Datos de la cuenta, rol y estado. Para resetear la password define una
+        nueva y comunícasela por fuera.
       </p>
     </header>
 
@@ -53,7 +53,7 @@ const isSelf = user?.id === guard.admin.id;
           <p class="adminState__lead">
             La API devolvió un error{" "}
             {!result.ok && result.status > 0 ? `(${result.status})` : "de red"}.
-            Reintentá la carga.
+            Reintenta la carga.
           </p>
           <a class="adminState__retry" href={`/admin/users/${id}/edit`}>
             Reintentar →
@@ -106,7 +106,7 @@ const isSelf = user?.id === guard.admin.id;
             <label class="adminForm__label" for="user-role">
               <span class="adminForm__labelText">Rol</span>
               {isSelf && (
-                <span class="adminForm__hint">No podés cambiar tu propio rol</span>
+                <span class="adminForm__hint">No puedes cambiar tu propio rol</span>
               )}
             </label>
             <select
@@ -130,7 +130,7 @@ const isSelf = user?.id === guard.admin.id;
             <label class="adminForm__label" for="user-active">
               <span class="adminForm__labelText">Estado</span>
               {isSelf && (
-                <span class="adminForm__hint">No podés desactivarte</span>
+                <span class="adminForm__hint">No puedes desactivarte</span>
               )}
             </label>
             <select
@@ -153,7 +153,7 @@ const isSelf = user?.id === guard.admin.id;
           <div class="adminForm__section adminForm__section--divider">
             <span class="adminForm__sectionTag">Password</span>
             <p class="adminForm__sectionLead">
-              Dejalo vacío para no cambiarla. Mínimo 8 caracteres.
+              Déjalo vacío para no cambiarla. Mínimo 8 caracteres.
             </p>
           </div>
 
@@ -287,9 +287,9 @@ const isSelf = user?.id === guard.admin.id;
         if (!response.ok) {
           if (body.error === "email_taken") {
             showFieldError("email", "Ya existe un usuario con ese email.");
-            showAlert("Revisá los datos del formulario.");
+            showAlert("Revisa los datos del formulario.");
           } else if (body.error === "cannot_modify_self") {
-            showAlert("No podés desactivarte ni cambiar tu propio rol.");
+            showAlert("No puedes desactivarte ni cambiar tu propio rol.");
           } else if (
             response.status === 400 &&
             Array.isArray(body.issues) &&
@@ -301,7 +301,7 @@ const isSelf = user?.id === guard.admin.id;
                 showFieldError(path, issue.message);
               }
             });
-            showAlert("Revisá los datos del formulario.");
+            showAlert("Revisa los datos del formulario.");
           } else {
             showAlert(body.error ?? "No pudimos guardar los cambios.");
           }

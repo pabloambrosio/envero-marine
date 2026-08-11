@@ -37,7 +37,7 @@ const user = result.ok ? result.data.user : null;
           <p class="adminState__lead">
             La API devolvió un error{" "}
             {!result.ok && result.status > 0 ? `(${result.status})` : "de red"}.
-            Reintentá la carga.
+            Reintenta la carga.
           </p>
           <a class="adminState__retry" href="/admin/profile">
             Reintentar →
@@ -111,7 +111,7 @@ const user = result.ok ? result.data.user : null;
             <div class="adminForm__section adminForm__section--divider">
               <span class="adminForm__sectionTag">Password</span>
               <p class="adminForm__sectionLead">
-                Confirmá con tu password actual. La nueva: mínimo 8 caracteres.
+                Confirma con tu password actual. La nueva: mínimo 8 caracteres.
               </p>
             </div>
 
@@ -258,7 +258,7 @@ const user = result.ok ? result.data.user : null;
         showFieldError(refs, path, issue.message);
       }
     });
-    showAlert(refs, "Revisá los datos del formulario.");
+    showAlert(refs, "Revisa los datos del formulario.");
   }
 
   async function patchMe(payload: unknown): Promise<{
@@ -308,7 +308,7 @@ const user = result.ok ? result.data.user : null;
         if (!ok) {
           if (body.error === "email_taken") {
             showFieldError(refs, "email", "Ya existe un usuario con ese email.");
-            showAlert(refs, "Revisá los datos del formulario.");
+            showAlert(refs, "Revisa los datos del formulario.");
           } else if (status === 400 && Array.isArray(body.issues)) {
             // El path viene como ["profile", "email"] por el schema anidado.
             showIssues(refs, body.issues, 1);
@@ -360,7 +360,7 @@ const user = result.ok ? result.data.user : null;
               "current_password",
               "La password actual no es correcta.",
             );
-            showAlert(refs, "Revisá los datos del formulario.");
+            showAlert(refs, "Revisa los datos del formulario.");
           } else if (status === 400 && Array.isArray(body.issues)) {
             showIssues(refs, body.issues, 1);
           } else {

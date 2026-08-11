@@ -12,7 +12,7 @@ if (!guard.ok) return guard.redirect;
       <span class="adminPage__eyebrow">01 / Citas · Nueva</span>
       <h1 class="adminPage__title">Crear cita</h1>
       <p class="adminPage__lead">
-        Cargá los datos de contacto y la fecha de la cita.
+        Carga los datos de contacto y la fecha de la cita.
       </p>
     </header>
 
@@ -265,7 +265,7 @@ if (!guard.ok) return guard.redirect;
                 showFieldError(path, issue.message);
               }
             });
-            showAlert("Revisá los datos del formulario.");
+            showAlert("Revisa los datos del formulario.");
           } else {
             showAlert(body.error ?? "No pudimos crear la cita.");
           }

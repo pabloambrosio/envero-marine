@@ -49,8 +49,8 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
       <span class="adminPage__eyebrow">01 / Citas · Editar</span>
       <h1 class="adminPage__title">Editar cita</h1>
       <p class="adminPage__lead">
-        Cambiá el estado, ajustá la fecha o las notas. Para cancelar la cita,
-        cambiá el estado a "Cancelada".
+        Cambia el estado, ajusta la fecha o las notas. Para cancelar la cita,
+        cambia el estado a "Cancelada".
       </p>
     </header>
 
@@ -75,7 +75,7 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
             {appointmentResult.ok === false && appointmentResult.status > 0
               ? ` (${appointmentResult.status})`
               : " de red"}
-            . Reintentá la carga.
+            . Reintenta la carga.
           </p>
           <a
             class="adminState__retry"
@@ -328,12 +328,12 @@ const dateValue = appointment ? toDatetimeLocal(appointment.appointment_date) : 
               showFieldError(path, issue.message);
             }
           });
-          showAlert("Revisá los datos del formulario.");
+          showAlert("Revisa los datos del formulario.");
         } else {
           showAlert(body.error ?? "No pudimos guardar los cambios.");
         }
       } catch {
-        showAlert("Error de red. Verificá tu conexión.");
+        showAlert("Error de red. Verifica tu conexión.");
       } finally {
         submit.disabled = false;
         submitLabel.textContent = "Guardar cambios";

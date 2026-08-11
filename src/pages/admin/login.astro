@@ -4,7 +4,7 @@ import { getRepositories } from "../../lib/db";
 import { SESSION_COOKIE, hashSessionToken } from "../../lib/session";
 
 // /admin/login es excepción pública del middleware, así que la sesión se
-// resuelve acá: con sesión válida no tiene sentido mostrar el form.
+// resuelve aquí: con sesión válida no tiene sentido mostrar el form.
 const sessionToken = Astro.cookies.get(SESSION_COOKIE)?.value;
 const session = sessionToken
   ? await getRepositories().auth.getSessionWithUser(
@@ -39,7 +39,7 @@ const initialAlert =
         <span class="login__eyebrow">01 / Acceso</span>
         <h1 class="login__title">Acceso administrativo</h1>
         <p class="login__lead">
-          Ingresá con tus credenciales de staff. El acceso queda registrado y limitado a
+          Ingresa con tus credenciales de staff. El acceso queda registrado y limitado a
           usuarios autorizados.
         </p>
       </div>
@@ -171,16 +171,16 @@ const initialAlert =
             showFieldError(path, issue.message);
           }
         });
-        showAlert("Revisá los datos del formulario.");
+        showAlert("Revisa los datos del formulario.");
       } else if (response.status === 401) {
         showAlert("Credenciales inválidas.");
       } else if (response.status === 403) {
         showAlert("Tu usuario no tiene acceso al panel administrativo.");
       } else {
-        showAlert(payload.error ?? "No pudimos procesar el ingreso. Probá de nuevo.");
+        showAlert(payload.error ?? "No pudimos procesar el ingreso. Intenta de nuevo.");
       }
     } catch {
-      showAlert("Error de red. Verificá tu conexión.");
+      showAlert("Error de red. Verifica tu conexión.");
     } finally {
       submit.disabled = false;
       submitLabel.textContent = "Entrar";

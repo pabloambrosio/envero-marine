@@ -12,7 +12,7 @@ if (!guard.ok) return guard.redirect;
       <span class="adminPage__eyebrow">02 / Usuarios · Nuevo</span>
       <h1 class="adminPage__title">Crear usuario</h1>
       <p class="adminPage__lead">
-        La password inicial la definís acá y se la comunicás por fuera; el
+        La password inicial la defines aquí y se la comunicas por fuera; el
         usuario puede cambiarla después desde su perfil.
       </p>
     </header>
@@ -197,7 +197,7 @@ if (!guard.ok) return guard.redirect;
         if (!response.ok) {
           if (body.error === "email_taken") {
             showFieldError("email", "Ya existe un usuario con ese email.");
-            showAlert("Revisá los datos del formulario.");
+            showAlert("Revisa los datos del formulario.");
           } else if (
             response.status === 400 &&
             Array.isArray(body.issues) &&
@@ -209,7 +209,7 @@ if (!guard.ok) return guard.redirect;
                 showFieldError(path, issue.message);
               }
             });
-            showAlert("Revisá los datos del formulario.");
+            showAlert("Revisa los datos del formulario.");
           } else {
             showAlert(body.error ?? "No pudimos crear el usuario.");
           }
