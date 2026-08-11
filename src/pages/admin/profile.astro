@@ -1,0 +1,425 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../admin/guard";
+import { adminFetch } from "../../admin/api";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+interface AppUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "admin" | "staff";
+}
+
+const result = await adminFetch<{ user: AppUser }>(Astro, "/api/admin/me");
+const user = result.ok ? result.data.user : null;
+---
+
+<AdminLayout title="Mi perfil · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <span class="adminPage__eyebrow">Mi perfil</span>
+      <h1 class="adminPage__title">
+        {user ? user.name || user.email : "Mi perfil"}
+      </h1>
+      <p class="adminPage__lead">
+        Tus datos de acceso al panel. Los cambios aplican en el próximo request.
+      </p>
+    </header>
+
+    {
+      !user ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">Error</span>
+          <h2 class="adminState__title">No pudimos cargar tu perfil.</h2>
+          <p class="adminState__lead">
+            La API devolvió un error{" "}
+            {!result.ok && result.status > 0 ? `(${result.status})` : "de red"}.
+            Reintentá la carga.
+          </p>
+          <a class="adminState__retry" href="/admin/profile">
+            Reintentar →
+          </a>
+        </div>
+      ) : (
+        <div class="profile">
+          <form class="adminForm" novalidate data-form-profile>
+            <div class="adminForm__alert" data-form-alert hidden>
+              <span class="adminForm__alertTag" aria-hidden="true">ERROR</span>
+              <span class="adminForm__alertText" data-form-alert-text />
+            </div>
+            <div
+              class="adminForm__alert adminForm__alert--ok"
+              data-form-success
+              hidden
+            >
+              <span class="adminForm__alertTag" aria-hidden="true">OK</span>
+              <span class="adminForm__alertText" data-form-success-text />
+            </div>
+
+            <div class="adminForm__field">
+              <label class="adminForm__label" for="profile-name">
+                <span class="adminForm__labelText">Nombre</span>
+                <span class="adminForm__labelReq" aria-hidden="true">*</span>
+              </label>
+              <input
+                class="adminForm__input"
+                type="text"
+                name="name"
+                id="profile-name"
+                autocomplete="name"
+                required
+                value={user.name}
+                data-form-input="name"
+              />
+              <span class="adminForm__fieldError" data-form-error="name" />
+            </div>
+
+            <div class="adminForm__field">
+              <label class="adminForm__label" for="profile-email">
+                <span class="adminForm__labelText">Email</span>
+                <span class="adminForm__labelReq" aria-hidden="true">*</span>
+              </label>
+              <input
+                class="adminForm__input"
+                type="email"
+                name="email"
+                id="profile-email"
+                autocomplete="email"
+                required
+                value={user.email}
+                data-form-input="email"
+              />
+              <span class="adminForm__fieldError" data-form-error="email" />
+            </div>
+
+            <div class="adminForm__actions">
+              <button
+                class="btn btn--primary adminForm__submit"
+                type="submit"
+                data-form-submit
+              >
+                <span data-form-submit-label>Guardar datos</span>
+                <span class="btn__arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </form>
+
+          <form class="adminForm" novalidate data-form-password>
+            <div class="adminForm__section adminForm__section--divider">
+              <span class="adminForm__sectionTag">Password</span>
+              <p class="adminForm__sectionLead">
+                Confirmá con tu password actual. La nueva: mínimo 8 caracteres.
+              </p>
+            </div>
+
+            <div class="adminForm__alert" data-form-alert hidden>
+              <span class="adminForm__alertTag" aria-hidden="true">ERROR</span>
+              <span class="adminForm__alertText" data-form-alert-text />
+            </div>
+            <div
+              class="adminForm__alert adminForm__alert--ok"
+              data-form-success
+              hidden
+            >
+              <span class="adminForm__alertTag" aria-hidden="true">OK</span>
+              <span class="adminForm__alertText" data-form-success-text />
+            </div>
+
+            <div class="adminForm__field">
+              <label class="adminForm__label" for="current-password">
+                <span class="adminForm__labelText">Password actual</span>
+                <span class="adminForm__labelReq" aria-hidden="true">*</span>
+              </label>
+              <input
+                class="adminForm__input"
+                type="password"
+                name="current_password"
+                id="current-password"
+                autocomplete="current-password"
+                required
+                data-form-input="current_password"
+              />
+              <span
+                class="adminForm__fieldError"
+                data-form-error="current_password"
+              />
+            </div>
+
+            <div class="adminForm__field">
+              <label class="adminForm__label" for="new-password">
+                <span class="adminForm__labelText">Password nueva</span>
+                <span class="adminForm__labelReq" aria-hidden="true">*</span>
+              </label>
+              <input
+                class="adminForm__input"
+                type="password"
+                name="new_password"
+                id="new-password"
+                autocomplete="new-password"
+                required
+                minlength="8"
+                data-form-input="new_password"
+              />
+              <span
+                class="adminForm__fieldError"
+                data-form-error="new_password"
+              />
+            </div>
+
+            <div class="adminForm__actions">
+              <button
+                class="btn btn--primary adminForm__submit"
+                type="submit"
+                data-form-submit
+              >
+                <span data-form-submit-label>Cambiar password</span>
+                <span class="btn__arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )
+    }
+  </section>
+</AdminLayout>
+
+<script>
+  type Issue = { path?: (string | number)[]; message?: string };
+
+  interface FormRefs {
+    form: HTMLFormElement;
+    alertBox: HTMLDivElement | null;
+    alertText: HTMLSpanElement | null;
+    successBox: HTMLDivElement | null;
+    successText: HTMLSpanElement | null;
+    submit: HTMLButtonElement | null;
+    submitLabel: HTMLSpanElement | null;
+  }
+
+  function getRefs(form: HTMLFormElement): FormRefs {
+    return {
+      form,
+      alertBox: form.querySelector("[data-form-alert]"),
+      alertText: form.querySelector("[data-form-alert-text]"),
+      successBox: form.querySelector("[data-form-success]"),
+      successText: form.querySelector("[data-form-success-text]"),
+      submit: form.querySelector("[data-form-submit]"),
+      submitLabel: form.querySelector("[data-form-submit-label]"),
+    };
+  }
+
+  function clearMessages(refs: FormRefs) {
+    if (refs.alertBox) refs.alertBox.hidden = true;
+    if (refs.successBox) refs.successBox.hidden = true;
+    refs.form
+      .querySelectorAll<HTMLSpanElement>("[data-form-error]")
+      .forEach((el) => {
+        el.textContent = "";
+        el.classList.remove("is-visible");
+      });
+    refs.form
+      .querySelectorAll<HTMLInputElement>("[data-form-input]")
+      .forEach((el) => el.classList.remove("has-error"));
+  }
+
+  function showAlert(refs: FormRefs, message: string) {
+    if (!refs.alertBox || !refs.alertText) return;
+    refs.alertText.textContent = message;
+    refs.alertBox.hidden = false;
+  }
+
+  function showSuccess(refs: FormRefs, message: string) {
+    if (!refs.successBox || !refs.successText) return;
+    refs.successText.textContent = message;
+    refs.successBox.hidden = false;
+  }
+
+  function showFieldError(refs: FormRefs, field: string, message: string) {
+    const errorEl = refs.form.querySelector<HTMLSpanElement>(
+      `[data-form-error="${field}"]`,
+    );
+    const input = refs.form.querySelector<HTMLInputElement>(
+      `[data-form-input="${field}"]`,
+    );
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.classList.add("is-visible");
+    }
+    if (input) input.classList.add("has-error");
+  }
+
+  function showIssues(refs: FormRefs, issues: Issue[], prefixDepth: number) {
+    issues.forEach((issue) => {
+      const path = issue.path?.[prefixDepth];
+      if (typeof path === "string" && issue.message) {
+        showFieldError(refs, path, issue.message);
+      }
+    });
+    showAlert(refs, "Revisá los datos del formulario.");
+  }
+
+  async function patchMe(payload: unknown): Promise<{
+    ok: boolean;
+    status: number;
+    body: { error?: string; issues?: Issue[] };
+  }> {
+    const response = await fetch("/api/admin/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(payload),
+    });
+    if (response.status === 401) {
+      window.location.href = "/admin/login";
+      return { ok: false, status: 401, body: {} };
+    }
+    const body = await response.json().catch(() => ({}));
+    return { ok: response.ok, status: response.status, body };
+  }
+
+  const profileForm = document.querySelector<HTMLFormElement>(
+    "[data-form-profile]",
+  );
+  if (profileForm) {
+    const refs = getRefs(profileForm);
+    profileForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearMessages(refs);
+
+      const data = new FormData(profileForm);
+      const payload = {
+        profile: {
+          name: String(data.get("name") ?? "").trim(),
+          email: String(data.get("email") ?? "").trim(),
+        },
+      };
+
+      if (!refs.submit || !refs.submitLabel) return;
+      refs.submit.disabled = true;
+      refs.submitLabel.textContent = "Guardando…";
+
+      try {
+        const { ok, status, body } = await patchMe(payload);
+        if (status === 401) return;
+
+        if (!ok) {
+          if (body.error === "email_taken") {
+            showFieldError(refs, "email", "Ya existe un usuario con ese email.");
+            showAlert(refs, "Revisá los datos del formulario.");
+          } else if (status === 400 && Array.isArray(body.issues)) {
+            // El path viene como ["profile", "email"] por el schema anidado.
+            showIssues(refs, body.issues, 1);
+          } else {
+            showAlert(refs, body.error ?? "No pudimos guardar tus datos.");
+          }
+          return;
+        }
+
+        showSuccess(refs, "Datos guardados.");
+      } catch {
+        showAlert(refs, "Error de red al guardar tus datos.");
+      } finally {
+        refs.submit.disabled = false;
+        refs.submitLabel.textContent = "Guardar datos";
+      }
+    });
+  }
+
+  const passwordForm = document.querySelector<HTMLFormElement>(
+    "[data-form-password]",
+  );
+  if (passwordForm) {
+    const refs = getRefs(passwordForm);
+    passwordForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearMessages(refs);
+
+      const data = new FormData(passwordForm);
+      const payload = {
+        password: {
+          current_password: String(data.get("current_password") ?? ""),
+          new_password: String(data.get("new_password") ?? ""),
+        },
+      };
+
+      if (!refs.submit || !refs.submitLabel) return;
+      refs.submit.disabled = true;
+      refs.submitLabel.textContent = "Cambiando…";
+
+      try {
+        const { ok, status, body } = await patchMe(payload);
+        if (status === 401) return;
+
+        if (!ok) {
+          if (body.error === "invalid_password") {
+            showFieldError(
+              refs,
+              "current_password",
+              "La password actual no es correcta.",
+            );
+            showAlert(refs, "Revisá los datos del formulario.");
+          } else if (status === 400 && Array.isArray(body.issues)) {
+            showIssues(refs, body.issues, 1);
+          } else {
+            showAlert(refs, body.error ?? "No pudimos cambiar la password.");
+          }
+          return;
+        }
+
+        passwordForm.reset();
+        showSuccess(refs, "Password actualizada.");
+      } catch {
+        showAlert(refs, "Error de red al cambiar la password.");
+      } finally {
+        refs.submit.disabled = false;
+        refs.submitLabel.textContent = "Cambiar password";
+      }
+    });
+  }
+</script>
+
+<style>
+  .profile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .adminForm__alert--ok {
+    border-color: var(--color-primary);
+  }
+
+  .adminForm__alert--ok .adminForm__alertTag {
+    color: var(--color-primary);
+  }
+
+  .adminForm__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .adminForm__section--divider {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .adminForm__sectionTag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .adminForm__sectionLead {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--color-ink-muted);
+  }
+</style>

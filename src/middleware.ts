@@ -11,11 +11,17 @@ const PUBLIC_EXCEPTIONS = new Set([
   "/api/admin/logout",
 ]);
 
+// La gestión de usuarios es la única sección con rol: solo admin. El resto
+// del panel es para cualquier usuario logueado.
+const ADMIN_ONLY_PREFIXES = ["/admin/users", "/api/admin/users"];
+
+function matchesPrefix(pathname: string, prefixes: string[]): boolean {
+  return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
+
 function isProtected(pathname: string): boolean {
   if (PUBLIC_EXCEPTIONS.has(pathname)) return false;
-  return PROTECTED_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
-  );
+  return matchesPrefix(pathname, PROTECTED_PREFIXES);
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
@@ -39,6 +45,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return json({ error: "unauthorized" }, 401);
     }
     return context.redirect("/admin/login");
+  }
+
+  if (
+    matchesPrefix(pathname, ADMIN_ONLY_PREFIXES) &&
+    session.user.role !== "admin"
+  ) {
+    if (pathname.startsWith("/api/")) {
+      return json({ error: "forbidden" }, 403);
+    }
+    return context.redirect("/admin");
   }
 
   context.locals.user = session.user;

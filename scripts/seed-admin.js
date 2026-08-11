@@ -57,7 +57,7 @@ try {
   const passwordHash = await bcrypt.hash(password, 12);
 
   await connection.query(
-    "INSERT INTO `user` (id, email, password_hash, active) VALUES (?, ?, ?, TRUE)",
+    "INSERT INTO `user` (id, email, name, password_hash, role, active) VALUES (?, ?, 'Admin', ?, 'admin', TRUE)",
     [id, email, passwordHash],
   );
 

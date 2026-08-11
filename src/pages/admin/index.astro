@@ -10,10 +10,18 @@ interface AppointmentsListResponse {
   appointments: { id: string }[];
 }
 
-const appointmentsResult = await adminFetch<AppointmentsListResponse>(
-  Astro,
-  "/api/admin/appointments",
-);
+interface UsersListResponse {
+  users: { id: string }[];
+}
+
+const isAdmin = guard.admin.role === "admin";
+
+const [appointmentsResult, usersResult] = await Promise.all([
+  adminFetch<AppointmentsListResponse>(Astro, "/api/admin/appointments"),
+  isAdmin
+    ? adminFetch<UsersListResponse>(Astro, "/api/admin/users")
+    : Promise.resolve(null),
+]);
 
 const cards = [
   {
@@ -25,6 +33,17 @@ const cards = [
       : null,
     failed: !appointmentsResult.ok,
   },
+  ...(usersResult
+    ? [
+        {
+          eyebrow: "02 / Usuarios",
+          label: "Cuentas del panel",
+          href: "/admin/users",
+          count: usersResult.ok ? usersResult.data.users.length : null,
+          failed: !usersResult.ok,
+        },
+      ]
+    : []),
 ];
 ---
 
@@ -68,8 +87,8 @@ const cards = [
 <style>
   .dash {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    max-width: 320px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    max-width: 660px;
     gap: 1px;
     background-color: var(--color-line);
     border: 1px solid var(--color-line);

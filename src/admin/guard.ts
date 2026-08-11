@@ -1,8 +1,11 @@
 import type { AstroGlobal } from "astro";
+import type { UserRole } from "../lib/db/ports/user-repository";
 
 export interface AdminContext {
   id: string;
   email: string | null;
+  name: string;
+  role: UserRole;
 }
 
 export type GuardResult =
@@ -17,6 +20,11 @@ export async function requireAdmin(Astro: AstroGlobal): Promise<GuardResult> {
 
   return {
     ok: true,
-    admin: { id: user.id, email: user.email ?? null },
+    admin: {
+      id: user.id,
+      email: user.email ?? null,
+      name: user.name,
+      role: user.role,
+    },
   };
 }

@@ -34,7 +34,7 @@ export function createFakeAuthRepository(
       if (!user || !user.active) return null;
       return {
         expires_at: session.expires_at,
-        user: { id: user.id, email: user.email },
+        user: { id: user.id, email: user.email, name: user.name, role: user.role },
       };
     },
 

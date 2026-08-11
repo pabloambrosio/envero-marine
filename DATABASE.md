@@ -18,6 +18,7 @@ src/lib/db/
     appointment-repository.ts
     message-repository.ts
     auth-repository.ts
+    user-repository.ts
   prisma/         # implementación concreta (Prisma 7 + @prisma/adapter-mariadb)
     client.ts     # singleton PrismaClient (pool compartido por proceso)
     mappers.ts    # fila Prisma → tipo de dominio (Date → ISO string, camelCase → snake_case)
@@ -40,7 +41,7 @@ Prisma es la fuente de verdad ([`prisma/schema.prisma`](prisma/schema.prisma)); 
 |---|---|---|
 | `appointment` | Citas y solicitudes. | `status ENUM(pending/confirmed/cancelled)`; la "solicitud" es un appointment `pending`. `updated_at` lo mantiene `@updatedAt` de Prisma (ya no hay trigger). |
 | `message` | Formulario de contacto del home. | Solo insert desde el endpoint público; falta panel para leerlos. |
-| `user` | Staff que entra a `/admin`. | `email` unique, `password_hash` bcrypt (cost 12), `active` para soft-disable. |
+| `user` | Staff que entra a `/admin`. | `email` unique, `name`, `password_hash` bcrypt (cost 12), `role ENUM(admin/staff)`, `active` para soft-disable (la única forma de baja: no hay delete). |
 | `session` | Sesiones del panel. | `id` = SHA-256 hex del token de la cookie. FK a `user` con cascade. |
 
 Decisiones:
@@ -58,7 +59,8 @@ Supabase Auth se fue; el flujo completo vive en el repo:
 - **Sesiones opacas** ([`src/lib/session.ts`](src/lib/session.ts)): token de 32 bytes random en la cookie `session` (HttpOnly, `Secure` en prod, `SameSite=Lax`, 30 días); en la DB solo el SHA-256. Un dump de la base no regala sesiones.
 - **Middleware** ([`src/middleware.ts`](src/middleware.ts)): protege `/admin/*` y `/api/admin/*` con una query local a `session` (antes era un network call a Supabase de 50–150 ms). `locals.user = { id, email }`.
 - **Errores de login indistinguibles**: "no existe", "inactivo" y "password mal" devuelven el mismo `invalid_credentials`.
-- **No hay reset de password por email.** Si el admin pierde la clave: `yarn seed:admin` con otro email, o UPDATE del hash a mano.
+- **No hay reset de password por email.** Otro admin puede resetearla desde `/admin/users/<id>/edit`; si no queda ningún admin con acceso: `yarn seed:admin` con otro email, o UPDATE del hash a mano.
+- **Roles** (`user.role`): `admin` gestiona usuarios (`/admin/users`, CRUD en `src/modules/user/`); `staff` usa el resto del panel y edita su perfil en `/admin/profile` (`/api/admin/me`). El enforcement vive en el middleware (prefijos `/admin/users` y `/api/admin/users`), no endpoint por endpoint. Anti-lockout: un admin no puede desactivarse ni sacarse el rol a sí mismo, y como la baja es solo `active = false`, siempre queda al menos un admin activo.
 
 ## Entorno dev
 

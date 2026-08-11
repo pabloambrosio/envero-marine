@@ -10,6 +10,8 @@ const PASSWORD = "correcta-123";
 const admin = {
   id: "user-1",
   email: "admin@local.test",
+  name: "Admin",
+  role: "admin" as const,
   password_hash: hashSync(PASSWORD, 4),
   active: true,
 };

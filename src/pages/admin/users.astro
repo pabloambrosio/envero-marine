@@ -1,0 +1,128 @@
+---
+import AdminLayout from "../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../admin/guard";
+import { adminFetch } from "../../admin/api";
+import { formatTimestamp } from "../../admin/format";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+type UserRole = "admin" | "staff";
+
+interface AppUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  active: boolean;
+  created_at: string;
+}
+
+interface UsersResponse {
+  users: AppUser[];
+}
+
+const result = await adminFetch<UsersResponse>(Astro, "/api/admin/users");
+const users = result.ok ? result.data.users : [];
+
+const ROLE_LABEL: Record<UserRole, string> = {
+  admin: "Admin",
+  staff: "Staff",
+};
+---
+
+<AdminLayout title="Usuarios · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <div class="adminPage__headRow">
+        <div class="adminPage__headTitles">
+          <span class="adminPage__eyebrow">02 / Usuarios</span>
+          <h1 class="adminPage__title">Usuarios</h1>
+        </div>
+        <a class="btn btn--primary" href="/admin/users/new">
+          <span>Nuevo usuario</span>
+          <span class="btn__arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <p class="adminPage__lead">
+        Cuentas con acceso al panel. Hacé click en una fila para editar datos,
+        rol o estado; las bajas se manejan desactivando la cuenta.
+      </p>
+    </header>
+
+    {
+      !result.ok ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">Error</span>
+          <h2 class="adminState__title">No pudimos cargar los usuarios.</h2>
+          <p class="adminState__lead">
+            La API devolvió un error{" "}
+            {result.status > 0 ? `(${result.status})` : "de red"}. Reintentá la
+            carga.
+          </p>
+          <a class="adminState__retry" href="/admin/users">
+            Reintentar →
+          </a>
+        </div>
+      ) : (
+        <div class="adminTable__wrap">
+          <table class="adminTable">
+            <thead>
+              <tr>
+                <th class="is-mono">Nombre</th>
+                <th class="is-mono">Email</th>
+                <th class="is-mono">Rol</th>
+                <th class="is-mono">Estado</th>
+                <th class="is-mono">Creado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr
+                  class="adminTable__row--clickable"
+                  data-user-row
+                  data-user-id={u.id}
+                >
+                  <td>{u.name || "—"}</td>
+                  <td class="is-mono is-muted">{u.email}</td>
+                  <td class="is-mono is-tight">{ROLE_LABEL[u.role]}</td>
+                  <td>
+                    <span
+                      class:list={[
+                        "badge",
+                        u.active ? "badge--ok" : "badge--off",
+                      ]}
+                    >
+                      {u.active ? "Activo" : "Inactivo"}
+                    </span>
+                  </td>
+                  <td class="is-mono is-tight is-muted">
+                    {formatTimestamp(u.created_at)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )
+    }
+  </section>
+</AdminLayout>
+
+<script>
+  const rows = document.querySelectorAll<HTMLTableRowElement>("[data-user-row]");
+  rows.forEach((row) => {
+    row.addEventListener("click", (event) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("a, button, input, select, textarea, label")) return;
+      const id = row.dataset.userId;
+      if (id) window.location.href = `/admin/users/${id}/edit`;
+    });
+  });
+</script>
+
+<style>
+  .adminTable__row--clickable {
+    cursor: pointer;
+  }
+</style>

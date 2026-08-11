@@ -3,9 +3,13 @@
 // El `id` de una sesión es el SHA-256 hex del token que viaja en la cookie
 // (ver src/lib/session.ts). Este puerto nunca ve el token en claro.
 
+import type { UserRole } from "./user-repository";
+
 export interface AuthUser {
   id: string;
   email: string;
+  name: string;
+  role: UserRole;
   password_hash: string;
   active: boolean;
 }
@@ -13,6 +17,8 @@ export interface AuthUser {
 export interface SessionUser {
   id: string;
   email: string;
+  name: string;
+  role: UserRole;
 }
 
 export interface SessionWithUser {

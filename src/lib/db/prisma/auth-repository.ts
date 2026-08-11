@@ -1,5 +1,6 @@
 import type { PrismaClient } from "../../../generated/prisma/client";
 import type { AuthRepository, NewSession } from "../ports/auth-repository";
+import type { UserRole } from "../ports/user-repository";
 
 export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository {
   return {
@@ -9,6 +10,8 @@ export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository
       return {
         id: row.id,
         email: row.email,
+        name: row.name,
+        role: row.role as UserRole,
         password_hash: row.passwordHash,
         active: row.active,
       };
@@ -32,7 +35,12 @@ export function createPrismaAuthRepository(prisma: PrismaClient): AuthRepository
       if (!row || row.expiresAt <= new Date() || !row.user.active) return null;
       return {
         expires_at: row.expiresAt,
-        user: { id: row.user.id, email: row.user.email },
+        user: {
+          id: row.user.id,
+          email: row.user.email,
+          name: row.user.name,
+          role: row.user.role as UserRole,
+        },
       };
     },
 

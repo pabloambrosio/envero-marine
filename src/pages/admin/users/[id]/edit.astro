@@ -1,0 +1,350 @@
+---
+import AdminLayout from "../../../../layouts/AdminLayout.astro";
+import { requireAdmin } from "../../../../admin/guard";
+import { adminFetch } from "../../../../admin/api";
+
+const guard = await requireAdmin(Astro);
+if (!guard.ok) return guard.redirect;
+
+type UserRole = "admin" | "staff";
+
+interface AppUser {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  active: boolean;
+  created_at: string;
+}
+
+const { id } = Astro.params;
+const result = await adminFetch<{ user: AppUser }>(
+  Astro,
+  `/api/admin/users/${id}`,
+);
+
+if (!result.ok && result.status === 404) {
+  return Astro.redirect("/admin/users");
+}
+
+const user = result.ok ? result.data.user : null;
+
+// El server rechaza igual (cannot_modify_self); deshabilitar acá solo evita
+// el viaje al error.
+const isSelf = user?.id === guard.admin.id;
+---
+
+<AdminLayout title="Editar usuario · Admin">
+  <section class="adminPage">
+    <header class="adminPage__head">
+      <span class="adminPage__eyebrow">02 / Usuarios · Editar</span>
+      <h1 class="adminPage__title">{user ? user.name || user.email : "Editar usuario"}</h1>
+      <p class="adminPage__lead">
+        Datos de la cuenta, rol y estado. Para resetear la password definí una
+        nueva y comunicásela por fuera.
+      </p>
+    </header>
+
+    {
+      !user ? (
+        <div class="adminState adminState--error">
+          <span class="adminState__tag">Error</span>
+          <h2 class="adminState__title">No pudimos cargar el usuario.</h2>
+          <p class="adminState__lead">
+            La API devolvió un error{" "}
+            {!result.ok && result.status > 0 ? `(${result.status})` : "de red"}.
+            Reintentá la carga.
+          </p>
+          <a class="adminState__retry" href={`/admin/users/${id}/edit`}>
+            Reintentar →
+          </a>
+        </div>
+      ) : (
+        <form class="adminForm" novalidate data-form-edit-user data-user-id={user.id}>
+          <div class="adminForm__alert" data-form-alert hidden>
+            <span class="adminForm__alertTag" aria-hidden="true">ERROR</span>
+            <span class="adminForm__alertText" data-form-alert-text />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="user-name">
+              <span class="adminForm__labelText">Nombre</span>
+              <span class="adminForm__labelReq" aria-hidden="true">*</span>
+            </label>
+            <input
+              class="adminForm__input"
+              type="text"
+              name="name"
+              id="user-name"
+              autocomplete="off"
+              required
+              value={user.name}
+              data-form-input="name"
+            />
+            <span class="adminForm__fieldError" data-form-error="name" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="user-email">
+              <span class="adminForm__labelText">Email</span>
+              <span class="adminForm__labelReq" aria-hidden="true">*</span>
+            </label>
+            <input
+              class="adminForm__input"
+              type="email"
+              name="email"
+              id="user-email"
+              autocomplete="off"
+              required
+              value={user.email}
+              data-form-input="email"
+            />
+            <span class="adminForm__fieldError" data-form-error="email" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="user-role">
+              <span class="adminForm__labelText">Rol</span>
+              {isSelf && (
+                <span class="adminForm__hint">No podés cambiar tu propio rol</span>
+              )}
+            </label>
+            <select
+              class="adminForm__select"
+              name="role"
+              id="user-role"
+              disabled={isSelf}
+              data-form-input="role"
+            >
+              <option value="staff" selected={user.role === "staff"}>
+                Staff
+              </option>
+              <option value="admin" selected={user.role === "admin"}>
+                Admin
+              </option>
+            </select>
+            <span class="adminForm__fieldError" data-form-error="role" />
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="user-active">
+              <span class="adminForm__labelText">Estado</span>
+              {isSelf && (
+                <span class="adminForm__hint">No podés desactivarte</span>
+              )}
+            </label>
+            <select
+              class="adminForm__select"
+              name="active"
+              id="user-active"
+              disabled={isSelf}
+              data-form-input="active"
+            >
+              <option value="true" selected={user.active}>
+                Activo
+              </option>
+              <option value="false" selected={!user.active}>
+                Inactivo
+              </option>
+            </select>
+            <span class="adminForm__fieldError" data-form-error="active" />
+          </div>
+
+          <div class="adminForm__section adminForm__section--divider">
+            <span class="adminForm__sectionTag">Password</span>
+            <p class="adminForm__sectionLead">
+              Dejalo vacío para no cambiarla. Mínimo 8 caracteres.
+            </p>
+          </div>
+
+          <div class="adminForm__field">
+            <label class="adminForm__label" for="user-password">
+              <span class="adminForm__labelText">Password nueva</span>
+              <span class="adminForm__hint">Opcional</span>
+            </label>
+            <input
+              class="adminForm__input"
+              type="password"
+              name="password"
+              id="user-password"
+              autocomplete="new-password"
+              minlength="8"
+              data-form-input="password"
+            />
+            <span class="adminForm__fieldError" data-form-error="password" />
+          </div>
+
+          <div class="adminForm__actions">
+            <a class="adminForm__cancel" href="/admin/users">Cancelar</a>
+            <button
+              class="btn btn--primary adminForm__submit"
+              type="submit"
+              data-form-submit
+            >
+              <span data-form-submit-label>Guardar cambios</span>
+              <span class="btn__arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+        </form>
+      )
+    }
+  </section>
+</AdminLayout>
+
+<script>
+  type Issue = { path?: (string | number)[]; message?: string };
+
+  const form = document.querySelector<HTMLFormElement>("[data-form-edit-user]");
+
+  if (form) {
+    const userId = form.dataset.userId;
+    const alertBox = form.querySelector<HTMLDivElement>("[data-form-alert]");
+    const alertText = form.querySelector<HTMLSpanElement>(
+      "[data-form-alert-text]",
+    );
+    const submit = form.querySelector<HTMLButtonElement>("[data-form-submit]");
+    const submitLabel = form.querySelector<HTMLSpanElement>(
+      "[data-form-submit-label]",
+    );
+    const fieldErrors = form.querySelectorAll<HTMLSpanElement>(
+      "[data-form-error]",
+    );
+    const inputs = form.querySelectorAll<HTMLInputElement | HTMLSelectElement>(
+      "[data-form-input]",
+    );
+
+    function clearErrors() {
+      if (alertBox) alertBox.hidden = true;
+      if (alertText) alertText.textContent = "";
+      fieldErrors.forEach((el) => {
+        el.textContent = "";
+        el.classList.remove("is-visible");
+      });
+      inputs.forEach((el) => el.classList.remove("has-error"));
+    }
+
+    function showAlert(message: string) {
+      if (!alertBox || !alertText) return;
+      alertText.textContent = message;
+      alertBox.hidden = false;
+    }
+
+    function showFieldError(field: string, message: string) {
+      const errorEl = form!.querySelector<HTMLSpanElement>(
+        `[data-form-error="${field}"]`,
+      );
+      const input = form!.querySelector<HTMLInputElement | HTMLSelectElement>(
+        `[data-form-input="${field}"]`,
+      );
+      if (errorEl) {
+        errorEl.textContent = message;
+        errorEl.classList.add("is-visible");
+      }
+      if (input) input.classList.add("has-error");
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearErrors();
+
+      const data = new FormData(form);
+      const password = String(data.get("password") ?? "");
+
+      const payload: Record<string, unknown> = {
+        name: String(data.get("name") ?? "").trim(),
+        email: String(data.get("email") ?? "").trim(),
+      };
+      // Los selects deshabilitados (edición propia) no viajan en el FormData.
+      const role = data.get("role");
+      if (role !== null) payload.role = String(role);
+      const active = data.get("active");
+      if (active !== null) payload.active = active === "true";
+      if (password) payload.password = password;
+
+      if (!submit || !submitLabel) return;
+      submit.disabled = true;
+      submitLabel.textContent = "Guardando…";
+
+      try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify(payload),
+        });
+
+        if (response.status === 401) {
+          window.location.href = "/admin/login";
+          return;
+        }
+        if (response.status === 403) {
+          window.location.href = "/admin";
+          return;
+        }
+
+        const body = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          if (body.error === "email_taken") {
+            showFieldError("email", "Ya existe un usuario con ese email.");
+            showAlert("Revisá los datos del formulario.");
+          } else if (body.error === "cannot_modify_self") {
+            showAlert("No podés desactivarte ni cambiar tu propio rol.");
+          } else if (
+            response.status === 400 &&
+            Array.isArray(body.issues) &&
+            body.issues.length > 0
+          ) {
+            body.issues.forEach((issue: Issue) => {
+              const path = issue.path?.[0];
+              if (typeof path === "string" && issue.message) {
+                showFieldError(path, issue.message);
+              }
+            });
+            showAlert("Revisá los datos del formulario.");
+          } else {
+            showAlert(body.error ?? "No pudimos guardar los cambios.");
+          }
+          submit.disabled = false;
+          submitLabel.textContent = "Guardar cambios";
+          return;
+        }
+
+        window.location.href = "/admin/users";
+      } catch {
+        showAlert("Error de red al guardar los cambios.");
+        submit.disabled = false;
+        submitLabel.textContent = "Guardar cambios";
+      }
+    });
+  }
+</script>
+
+<style>
+  .adminForm__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .adminForm__section--divider {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .adminForm__sectionTag {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .adminForm__sectionLead {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--color-ink-muted);
+  }
+</style>
