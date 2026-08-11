@@ -4,65 +4,68 @@ Guía para entender el despliegue de punta a punta, no solo copiar comandos. Est
 
 Si buscás la referencia de Supabase (schema, migraciones, RLS), esa vive en [`SUPABASE_ROADMAP.md`](../SUPABASE_ROADMAP.md). Esto es lo otro: cómo el código de tu máquina termina siendo un sitio que responde en un dominio real.
 
+> **El destino es HostGator (plan Business, con Node).** El proyecto estuvo desplegado antes en Cloudflare Workers; esa etapa quedó atrás y el adapter se cambió a `@astrojs/node`. Si encontrás referencias a Workers, KV o `wrangler` en algún lado, son restos viejos.
+
 ---
 
 ## 1. Qué significa "desplegar" acá
 
-Un deploy es tomar el código fuente, convertirlo en algo que una computadora ajena pueda ejecutar, y dejarlo colgado de una dirección pública. Nada más. Lo que confunde es que en un stack moderno eso pasa en **cuatro lugares distintos**, y cada uno se administra por separado.
+Un deploy es tomar el código fuente, convertirlo en algo que una computadora ajena pueda ejecutar, y dejarlo colgado de una dirección pública. Nada más.
 
-Este sitio tiene cuatro piezas:
+Este sitio tiene **tres piezas**, y cada una se administra por separado:
 
 | Pieza | Qué es | Dónde vive |
 |---|---|---|
-| **Sitio estático** | El HTML/CSS/JS de las páginas públicas (home, marcas, about). Se genera en el build y no cambia hasta el próximo deploy. | CDN de Cloudflare |
-| **Worker** | Un pedacito de servidor que corre solo cuando alguien pide `/admin/*` o `/api/*`. Es quien habla con Supabase. | Cloudflare Workers |
+| **La app Node** | Un proceso de Node que sirve todo: las páginas públicas ya pre-generadas *y* las rutas que necesitan servidor (`/admin/*`, `/api/*`). Es quien habla con Supabase. | HostGator (cPanel → Setup Node.js App) |
 | **Base de datos + auth** | Las tablas `appointment` y `message`, y el usuario admin que entra al panel. | Supabase (Postgres gestionado, región `sa-east-1`) |
-| **Dominio** | El nombre que la gente escribe. Le dice al mundo dónde está todo lo anterior. | Registrador (HostGator) + DNS en Cloudflare |
+| **Dominio** | El nombre que la gente escribe. | HostGator (registrador + DNS) |
 
-La razón de que sean cuatro y no uno: las páginas públicas no necesitan servidor (se sirven desde el edge, gratis y rápido), pero el panel de citas sí. Astro con el adapter de Cloudflare parte el build en esos dos pedazos automáticamente. Eso está decidido en [`astro.config.mjs`](../astro.config.mjs) (`output: "server"` + `adapter: cloudflare(...)`) y en el `prerender = true` de cada página pública.
+Con el adapter de Node en modo `standalone` **no hay separación entre "sitio estático" y "servidor"**: el mismo proceso sirve los archivos de `dist/client/` y ejecuta el código de `dist/server/`. Eso simplifica bastante respecto del esquema anterior — una sola cosa que desplegar, un solo lugar donde mirar si algo falla.
+
+Lo que sigue igual es el `prerender = true` de cada página pública: esas se generan en el build y se sirven como HTML fijo, sin tocar la base. Solo el panel y las APIs se renderizan por request.
 
 ---
 
-## 2. El mapa mental: build → deploy → DNS
+## 2. El mapa mental: build → subir → arrancar
 
 ```
-   tu máquina                    Cloudflare                      Supabase
-   ──────────                    ──────────                      ────────
-                                                            
-   src/                                                     
-    │                                                       
-    │  yarn build                                           
-    ▼                                                       
-   dist/                                                    
-    ├── client/  ──────────►  CDN (assets estáticos)        
-    └── server/  ──────────►  Worker  ──── HTTPS ─────────►  Postgres + Auth
-         │                       ▲                              
-         │                       │                              
-    wrangler deploy              │                              
-                                 │                              
-                            dominio.com                         
-                          (DNS apunta acá)                      
+   tu máquina                       HostGator                      Supabase
+   ──────────                       ─────────                      ────────
+
+   src/
+    │
+    │  yarn build
+    ▼
+   dist/
+    ├── client/   ─┐
+    └── server/   ─┘── subir ──►  proceso Node ──── HTTPS ────►  Postgres + Auth
+                                   (Passenger)
+                                        ▲
+                                        │
+                                   dominio.com
+                                  (DNS de HostGator)
 ```
 
 Tres verbos, en este orden:
 
 1. **Build** — `yarn build` compila el proyecto y escupe `dist/`. No toca internet, no publica nada. Podés correrlo mil veces sin consecuencias.
-2. **Deploy** — `wrangler deploy` sube `dist/` a Cloudflare y reemplaza lo que había. Esto **sí** es visible al instante para cualquiera que entre.
-3. **DNS** — apuntar el dominio al Worker. Se hace una sola vez, no en cada deploy.
+2. **Subir + arrancar** — copiás `dist/` al servidor y le decís a cPanel que levante el proceso. Esto **sí** es visible al instante.
+3. **DNS** — apuntar el dominio a la app. Se hace una sola vez, no en cada deploy.
 
-La confusión típica del primer deploy es creer que son un solo paso. No lo son: podés buildear hoy y desplegar mañana, y podés desplegar cien veces sin volver a tocar el DNS.
+La confusión típica del primer deploy es creer que son un solo paso. No lo son: podés buildear hoy y subir mañana, y podés subir cien veces sin volver a tocar el DNS.
 
 ---
 
 ## 3. Estado actual
 
-El sitio **ya está desplegado** en https://envero-marine.pabloambrosio91.workers.dev — o sea, los pasos 1 y 2 ya se hicieron alguna vez. Lo que falta es el paso 3 (dominio real) y limpiar tres cosas que se dejaron a medias para salir rápido.
+El código ya está listo para Node. Lo que queda pendiente antes de considerar esto "en producción":
 
-Las tres deudas, en orden de importancia:
-
-1. **Las claves están horneadas en el bundle.** Hoy [`src/lib/supabase/admin.ts`](../src/lib/supabase/admin.ts) lee `SUPABASE_SECRET_KEY` con `import.meta.env`, que es una variable que se resuelve **en tiempo de build**: el valor queda escrito literal dentro del código subido a Cloudflare. La forma correcta es guardarla como secret en Cloudflare (`wrangler secret put`) y leerla en runtime desde `Astro.locals.runtime.env`. Es la diferencia entre "la contraseña está en el archivo" y "la contraseña está en la caja fuerte y el archivo pide que se la den".
+1. **Nunca se desplegó a HostGator todavía.** Los pasos de la sección 4 están sin ejecutar por primera vez.
 2. **El checklist de pre-prod de Supabase nunca se aplicó** — reglas de password, `site_url`, SMTP, RLS verificada. Está en [`SUPABASE_ROADMAP.md`](../SUPABASE_ROADMAP.md#pre-prod-checklist).
-3. **`site` en `astro.config.mjs` apunta al `.workers.dev`.** Ese valor es el que se usa para las URLs canónicas y los previews de Open Graph; con el dominio real hay que cambiarlo o los previews sociales van a seguir apuntando al subdominio viejo.
+3. **`site` en [`astro.config.mjs`](../astro.config.mjs) todavía apunta al `.workers.dev` viejo.** Ese valor genera las URLs canónicas y los previews de Open Graph. Con el dominio real hay que cambiarlo, o los previews sociales van a seguir apuntando a un sitio que ya no es el nuestro.
+4. **El Worker viejo de Cloudflare sigue en el aire.** Una vez que HostGator responda bien, conviene bajarlo para que no queden dos versiones del sitio vivas.
+
+**Ya resuelto:** las claves de Supabase antes quedaban escritas literal dentro del bundle. Ahora se declaran en `env.schema` de `astro.config.mjs`, y `SUPABASE_SECRET_KEY` está marcada como `access: "secret"` — se lee de las variables de entorno **en runtime** y no aparece en ningún archivo de `dist/`. Si falta al arrancar, el servidor tira un error explícito (`SUPABASE_SECRET_KEY is missing`) en vez de fallar de forma rara.
 
 ---
 
@@ -74,7 +77,7 @@ Que el build local funcione y que el sitio ande en `yarn dev` contra el Supabase
 
 ```bash
 yarn supabase start     # levanta Postgres, Auth y Studio en Docker
-yarn dev                # sitio en http://127.0.0.1:4321
+yarn dev                # sitio en http://localhost:4321
 ```
 
 ### Paso 1 — Preparar la base de datos de producción
@@ -94,9 +97,9 @@ Después, el admin: el usuario que entra a `/admin/login` no se crea con una mig
 
 Tres valores, todos del proyecto Supabase cloud:
 
-- `PUBLIC_SUPABASE_URL` — la URL del proyecto. Pública, va al navegador, no es secreta.
+- `PUBLIC_SUPABASE_URL` — la URL del proyecto. Pública, no es secreta.
 - `PUBLIC_SUPABASE_PUBLISHABLE_KEY` — clave de cliente. También pública; lo que la hace segura es que RLS limita qué puede hacer.
-- `SUPABASE_SECRET_KEY` — service-role. **Bypassea RLS por completo.** Quien la tenga puede leer y borrar todo. Jamás al navegador, jamás a un commit.
+- `SUPABASE_SECRET_KEY` — service-role. **Bypassea RLS por completo.** Quien la tenga puede leer y borrar todo. Jamás a un commit.
 
 ```bash
 supabase projects api-keys --project-ref <ref> --reveal -o json
@@ -108,46 +111,90 @@ supabase projects api-keys --project-ref <ref> --reveal -o json
 PUBLIC_SUPABASE_URL=... PUBLIC_SUPABASE_PUBLISHABLE_KEY=... yarn build
 ```
 
-Genera `dist/client/` (estático) y `dist/server/` (Worker + un `wrangler.json` que Astro arma solo, con el binding de KV para las sesiones ya declarado).
+Las dos `PUBLIC_*` se resuelven en el build. `SUPABASE_SECRET_KEY` **no hace falta acá** — esa se configura en el servidor (Paso 5).
 
-### Paso 4 — Deploy
+Genera:
+- `dist/client/` — HTML pre-generado, CSS, JS de navegador, fuentes, imágenes.
+- `dist/server/entry.mjs` — el servidor. Este archivo es el que Node ejecuta.
 
-```bash
-npx wrangler deploy --config dist/server/wrangler.json
-```
-
-Primera vez te va a pedir login con el navegador. Sube todo y te devuelve la URL. **A partir de este comando, el cambio es público.**
-
-Los secrets van aparte y una sola vez (no en cada deploy):
+Probalo local antes de subir nada:
 
 ```bash
-npx wrangler secret put SUPABASE_SECRET_KEY
+node ./dist/server/entry.mjs        # o: yarn start
 ```
 
-### Paso 5 — El dominio
+### Paso 4 — Subir los archivos
 
-Único paso que involucra a otra persona, y el único que no es reversible en dos minutos.
+Al directorio de la app en el servidor (por ejemplo `~/envero-marine`, **fuera** de `public_html`), vía File Manager de cPanel, FTP o `scp`:
 
-1. Agregás el dominio como zona en Cloudflare. Cloudflare escanea el DNS actual e intenta importar los registros existentes.
-2. **Verificás los MX a mano.** Si el cliente tiene emails `@sudominio`, esos registros tienen que estar en Cloudflare antes de seguir, o le cortás el correo.
-3. Cloudflare te da dos nameservers. El cliente los pega en el panel de su registrador, reemplazando los que están.
-4. Esperás la propagación (minutos a algunas horas).
-5. En el Worker, *Settings → Domains & Routes → Add Custom Domain*. Cloudflare emite el certificado HTTPS solo.
-6. Actualizás `site` en `astro.config.mjs`, y `site_url` + `additional_redirect_urls` en la config de Auth de Supabase. Rebuild y redeploy.
+- `dist/` completo
+- `package.json` y `yarn.lock`
 
-### Paso 6 — Verificar
+No subas `node_modules/` desde tu máquina: tiene binarios compilados para macOS que no sirven en el servidor Linux. Se instalan allá.
 
-Que cargue el home, que el formulario de contacto inserte en `message`, que el wizard de citas cree un `appointment`, que `/admin/login` deje entrar y el dashboard muestre datos, y que HTTPS esté verde. Si algo del Worker falla, `npx wrangler tail` te da los logs en vivo.
+### Paso 5 — Configurar la app en cPanel
+
+En cPanel → **Software → Setup Node.js App → Create Application**:
+
+| Campo | Valor |
+|---|---|
+| Node.js version | 22 o superior (lo pide `engines` en `package.json`) |
+| Application mode | Production |
+| Application root | la carpeta donde subiste todo (ej. `envero-marine`) |
+| Application URL | el dominio o subdominio |
+| Application startup file | `dist/server/entry.mjs` |
+
+Después, en la misma pantalla, **Environment variables** — las tres del Paso 2:
+
+```
+PUBLIC_SUPABASE_URL
+PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE_SECRET_KEY
+```
+
+Y las dependencias. cPanel te da un comando para entrar al entorno de la app (algo como `source /home/USUARIO/nodevenv/envero-marine/22/bin/activate && cd /home/USUARIO/envero-marine`). Desde ahí:
+
+```bash
+npm install --omit=dev
+```
+
+`--omit=dev` salta las devDependencies (`sharp`, `typescript`, el CLI de Supabase), que solo se usan para desarrollar y buildear. En runtime no hacen falta, y `sharp` en particular es un módulo nativo que suele dar problemas en hosting compartido.
+
+Por último, **Restart** en la pantalla de la app.
+
+### Paso 6 — El dominio
+
+HostGator ya es el registrador, así que no hay que mover nameservers: alcanza con que el dominio (o subdominio) esté asignado como *Application URL* de la app Node. El certificado HTTPS lo emite cPanel con AutoSSL; si no aparece solo, se fuerza desde **Security → SSL/TLS Status**.
+
+Después: actualizar `site` en [`astro.config.mjs`](../astro.config.mjs), y `site_url` + `additional_redirect_urls` en la config de Auth de Supabase. Rebuild y volver a subir.
+
+### Paso 7 — Verificar
+
+Que cargue el home, que el formulario de contacto inserte en `message`, que el wizard de citas cree un `appointment`, que `/admin/login` deje entrar y el dashboard muestre datos, y que HTTPS esté verde.
+
+Si algo falla, los logs de la app están en el directorio que indica la pantalla de Setup Node.js App (típicamente `~/logs/` o el `stderr` de Passenger). Un 503 casi siempre significa que el proceso no arrancó: mirá ahí primero, y sospechá de una variable de entorno faltante.
 
 ---
 
-## 5. Qué depende del cliente
+## 5. Redeploys
 
-De todo lo anterior, solo tres cosas no las podés resolver vos:
+Una vez configurado, el ciclo es corto:
+
+```bash
+yarn build                    # local
+# subir dist/ reemplazando el anterior
+# cPanel → Setup Node.js App → Restart
+```
+
+`npm install` solo hace falta cuando cambiaron las dependencias. Las variables de entorno quedan configuradas, no se tocan en cada deploy.
+
+---
+
+## 6. Qué depende del cliente
 
 | Necesitás | Para qué | Bloquea |
 |---|---|---|
-| Nameservers cambiados en el registrador | Paso 5 completo | El dominio real |
+| Acceso a cPanel (o que ejecute los pasos 4-5) | Todo el deploy | El sitio en el aire |
 | Credenciales SMTP (o luz verde para Resend) | Reset de password del admin, avisos de citas | Que el panel sea usable si pierde la clave |
 | Email de destino + email del admin real | A dónde llegan los mensajes, quién entra al panel | Nada técnico, pero sin esto el sitio no sirve para nada |
 
@@ -155,15 +202,15 @@ El resto (contenido de marcas, datos del negocio, logos) se puede cargar con el 
 
 ---
 
-## 6. Vocabulario
+## 7. Vocabulario
 
 - **Build** — compilar el código a archivos ejecutables. Local, sin consecuencias.
 - **Deploy** — subir el resultado del build a un servidor. Público al instante.
-- **Worker** — función que corre en los servidores de Cloudflare, cerca del usuario. Se cobra por invocación, no por tiempo encendido.
-- **Edge / CDN** — la red de servidores distribuidos que sirve los archivos estáticos.
-- **Nameservers (NS)** — los servidores que responden "¿a qué IP corresponde este dominio?". Cambiarlos es mudar el control del DNS.
-- **Registro MX** — el que dice a qué servidor van los emails del dominio. Independiente de la web; por eso se rompe tan fácil sin querer.
-- **Propagación** — el rato que tardan los DNS del mundo en enterarse de un cambio.
+- **Adapter** — el pedazo de Astro que sabe generar un servidor para una plataforma concreta. Acá, `@astrojs/node`.
+- **Standalone** — modo del adapter de Node en el que el build genera un servidor HTTP completo y autónomo. La alternativa (`middleware`) genera solo un handler para montar dentro de Express y no la usamos.
+- **Passenger** — el proceso de cPanel que arranca tu app Node, la mantiene viva y le pasa el tráfico que llega desde Apache/LiteSpeed. Es la razón de que no arranques el servidor a mano.
+- **Startup file** — el archivo que Passenger ejecuta para levantar la app. Acá, `dist/server/entry.mjs`.
+- **Prerender** — generar el HTML de una página durante el build en vez de por request. Es lo que hace que el home no toque la base de datos.
 - **RLS (Row Level Security)** — reglas en Postgres sobre qué filas puede ver cada rol. Es lo que hace que una clave pública sea segura.
-- **Secret** — variable de entorno guardada cifrada en Cloudflare, inyectada en runtime. Distinta de una var de build, que queda escrita en el bundle.
+- **Variable de build vs. de runtime** — la de build queda escrita dentro del código compilado; la de runtime se lee del entorno cada vez que arranca el proceso. Los secretos siempre van de runtime.
 - **Migración** — archivo SQL versionado que describe un cambio de schema. Se aplican en orden, y así la base de producción termina igual a la local.

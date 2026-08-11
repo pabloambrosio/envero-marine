@@ -1,17 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
-
-const url = import.meta.env.PUBLIC_SUPABASE_URL;
-const secretKey = import.meta.env.SUPABASE_SECRET_KEY;
-
-if (!url || !secretKey) {
-  throw new Error(
-    "Missing PUBLIC_SUPABASE_URL or SUPABASE_SECRET_KEY env vars",
-  );
-}
+import {
+  PUBLIC_SUPABASE_URL,
+  SUPABASE_SECRET_KEY,
+} from "astro:env/server";
 
 // Server-only client. Bypasses RLS via service-role; never import in browser code.
+// SUPABASE_SECRET_KEY llega de astro:env/server con access "secret": se resuelve
+// contra process.env en runtime, así que la clave nunca queda escrita en dist/.
 export function createSupabaseAdminClient() {
-  return createClient(url, secretKey, {
+  return createClient(PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }
